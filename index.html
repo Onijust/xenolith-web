@@ -391,6 +391,32 @@
     font-weight: 400;
   }
 
+  /* v5.11: desktop nav underline behavior now mirrors the FIXed mobile menu.
+     Only the current section owns a full red line. Hover/focus alone never draws one. */
+  .global-nav a::after {
+    left: 0 !important;
+    right: auto !important;
+    width: 100%;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform .24s cubic-bezier(.22,.61,.36,1) !important;
+  }
+  .global-nav a.active::after,
+  .global-nav a.nav-line-in::after {
+    transform: scaleX(1);
+  }
+  .global-nav a.nav-line-out::after {
+    transform: scaleX(0) !important;
+  }
+  .global-nav a.nav-line-prep::after {
+    transform: scaleX(0) !important;
+    transition: none !important;
+  }
+  .global-nav a:not(.active):not(.nav-line-in):hover::after,
+  .global-nav a:not(.active):not(.nav-line-in):focus-visible::after {
+    transform: scaleX(0) !important;
+  }
+
   /* Match all desktop section labels (ABOUT / WORKS / PROJECTS / CONTACT). */
   .section-label {
     font-family: var(--serif);
@@ -403,6 +429,12 @@
     font-weight: 400;
   }
 }
+
+
+/* ============================================================
+   Xenolith v5.11 — desktop nav underline choreography
+   Mobile v5.9 behavior remains untouched.
+   ============================================================ */
 
 </style>
 </head>
@@ -589,8 +621,46 @@
       event.preventDefault();
 
       if (!isMobileNav()) {
-        closeMenu();
-        scrollToAnchorTarget(target);
+        if (navLineTransitioning) return;
+
+        const current = navLinks.find(item => item.classList.contains('active')) || null;
+        const sameDestination = current === link;
+
+        if (sameDestination) {
+          setActiveNavLink(link);
+          navDestinationLock = link;
+          scrollToAnchorTarget(target);
+          window.clearTimeout(navDestinationTimer);
+          navDestinationTimer = window.setTimeout(releaseNavDestinationLock, prefersReduced ? 30 : 900);
+          return;
+        }
+
+        navLineTransitioning = true;
+        navDestinationLock = link;
+
+        /* Desktop v5.11: mirror the mobile underline choreography.
+           Incoming begins at true zero width while the previous active line
+           retracts right-to-left. The scroll starts immediately after the
+           line transitions have been kicked off. */
+        link.classList.remove('active', 'nav-line-in', 'nav-line-out');
+        link.classList.add('nav-line-prep');
+        current?.classList.add('nav-line-out');
+        getComputedStyle(link, '::after').transform; // flush zero-width state
+        link.classList.remove('nav-line-prep');
+        link.classList.add('nav-line-in');
+
+        requestAnimationFrame(() => scrollToAnchorTarget(target));
+
+        const lineDuration = prefersReduced ? 0 : 240;
+        window.setTimeout(() => {
+          setActiveNavLink(link);
+          current?.classList.remove('nav-line-out');
+          link.classList.remove('nav-line-in', 'nav-line-prep');
+          navLineTransitioning = false;
+
+          window.clearTimeout(navDestinationTimer);
+          navDestinationTimer = window.setTimeout(releaseNavDestinationLock, prefersReduced ? 30 : 900);
+        }, lineDuration);
         return;
       }
 
