@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Xenolith Website v5.10 — PC Fix (mobile v5.9 preserved) -->
+<!-- Xenolith Website v5.14 — mobile focus-at-section-top + mobile CONTACT spacing fix -->
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
@@ -443,6 +443,35 @@
     font-size: 11px !important;
     letter-spacing: .32em !important;
     line-height: normal;
+  }
+}
+
+/* ============================================================
+   Xenolith v5.13 — desktop section spacing normalization
+   Keep section-label -> main heading and main heading -> body
+   spacing identical across ABOUT / WORKS / PROJECTS / CONTACT.
+   Mobile v5.9 spacing remains untouched.
+   ============================================================ */
+@media (min-width: 761px) {
+  .panel .section-label,
+  .contact .section-label {
+    margin: 0 0 26px !important;
+  }
+  .panel h2,
+  .contact h2 {
+    margin: 0 0 24px !important;
+  }
+}
+
+/* ============================================================
+   Xenolith v5.14 — mobile CONTACT spacing normalization
+   CONTACT's generic paragraph rule was overriding the section-label margin.
+   Keep all mobile section-label -> main-heading spacing identical.
+   ============================================================ */
+@media (max-width: 760px) {
+  .panel .section-label,
+  .contact .section-label {
+    margin: 0 0 26px !important;
   }
 }
 
@@ -920,7 +949,21 @@
         const mediaTopOnScreen = mediaRect.top;
         const startY = viewport * (coarsePointer ? 0.78 : 0.70);
         const endY = headerHeight;
-        const focusP = clamp((startY - mediaTopOnScreen) / Math.max(1, startY - endY), 0, 1);
+        let focusP = clamp((startY - mediaTopOnScreen) / Math.max(1, startY - endY), 0, 1);
+
+        // v5.14 mobile: preserve the FIXed v5.9 focus timing while guaranteeing
+        // that the paired image is fully sharp when the section top lands flush
+        // beneath the fixed header (including navigation jumps).  The final
+        // approach is blended over a short distance so there is no last-frame snap.
+        if (coarsePointer) {
+          const settleRange = Math.max(72, viewport * 0.10);
+          const sectionSettleP = clamp(
+            (headerHeight + settleRange - sectionTopOnScreen) / settleRange,
+            0,
+            1
+          );
+          focusP = Math.max(focusP, sectionSettleP);
+        }
 
         const focus = easeOutCubic(focusP);
         const blurMax = coarsePointer ? 12 : 18;
