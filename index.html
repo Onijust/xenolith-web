@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- Xenolith Website v5.10 — PC Fix (mobile v5.9 preserved) -->
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
@@ -377,6 +378,32 @@
   .global-nav a::after { transition-duration: .01ms !important; }
 }
 
+
+
+/* ============================================================
+   Xenolith v5.10 — desktop-only typography + anchor alignment
+   Smartphone v5.9 styles remain untouched.
+   ============================================================ */
+@media (min-width: 761px) {
+  /* Match the desktop navigation to the Mincho voice used by mobile. */
+  .global-nav a {
+    font-family: var(--serif);
+    font-weight: 400;
+  }
+
+  /* Match all desktop section labels (ABOUT / WORKS / PROJECTS / CONTACT). */
+  .section-label {
+    font-family: var(--serif);
+    font-weight: 400;
+  }
+
+  /* Explicitly keep the CONTACT modal's top label on the same Mincho face. */
+  .contact-dialog .section-label {
+    font-family: var(--serif);
+    font-weight: 400;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -538,7 +565,13 @@
       return;
     }
 
-    target.scrollIntoView({ behavior, block: 'start' });
+    const isHome = target.id === 'home';
+    const headerHeight = header?.getBoundingClientRect().height || 82;
+    const absoluteTop = window.scrollY + target.getBoundingClientRect().top;
+    /* Desktop: align the section top exactly with the bottom edge of the fixed header.
+       This mirrors the already-FIXed mobile v5.9 behavior without changing its branch. */
+    const destination = isHome ? 0 : Math.max(0, absoluteTop - headerHeight);
+    window.scrollTo({ top: destination, behavior });
   };
 
   const releaseNavDestinationLock = () => {
