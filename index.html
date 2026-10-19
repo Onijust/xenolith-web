@@ -184,6 +184,161 @@
   }
 }
 
+
+
+/* ============================================================
+   Xenolith v5.7 — dropdown menu + unified focus + modal polish
+   ============================================================ */
+
+/* Modal typography and CLOSE action. */
+.contact-button,
+.dialog-ok {
+  font-family: var(--serif);
+  font-size: clamp(15px, 1.2vw, 18px);
+  font-weight: 400;
+}
+.contact-dialog h2 {
+  margin: 0 0 22px;
+  font-family: var(--serif);
+  font-weight: 400;
+  line-height: 1.42;
+  letter-spacing: .06em;
+}
+.contact-dialog > p:not(.section-label) {
+  line-height: 1.9;
+}
+.dialog-ok {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 30px auto 0;
+  min-width: min(250px, 68%);
+  height: 58px;
+  padding: 0 26px;
+  overflow: hidden;
+  isolation: isolate;
+  cursor: pointer;
+  font-family: var(--serif);
+  font-size: clamp(15px, 1.2vw, 18px);
+  font-weight: 400;
+  letter-spacing: .30em;
+  background: transparent;
+  transition: border-color .32s ease, color .32s ease, transform .36s var(--ease-out), box-shadow .36s var(--ease-out);
+}
+.dialog-ok::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--accent);
+  transform: translateX(102%);
+  transform-origin: right center;
+  transition: transform .42s var(--ease-out);
+}
+.dialog-ok.is-activating {
+  color: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 12px 34px rgba(239,28,37,.20);
+}
+.dialog-ok.is-activating::before {
+  transform: translateX(0);
+}
+.dialog-ok:active { transform: scale(.98); }
+
+@media (max-width:760px) {
+  /* v5.7: restore a compact dropdown instead of the full-screen menu. */
+  body.menu-open { overflow-x: hidden; overflow-y: auto; }
+  .global-nav {
+    position: absolute !important;
+    top: 72px !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 18px 28px 24px !important;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 6px !important;
+    background: rgba(10,19,28,.96);
+    backdrop-filter: blur(18px) saturate(120%);
+    -webkit-backdrop-filter: blur(18px) saturate(120%);
+    border-top: 1px solid rgba(255,255,255,.07);
+    box-shadow: 0 18px 36px rgba(0,0,0,.22);
+    overflow: hidden;
+    visibility: hidden;
+    opacity: 1;
+    pointer-events: none;
+    clip-path: inset(0 0 100% 0);
+    -webkit-clip-path: inset(0 0 100% 0);
+    transform: none !important;
+    transform-origin: top center;
+    transition:
+      clip-path .48s var(--ease-out),
+      -webkit-clip-path .48s var(--ease-out),
+      visibility 0s linear .48s !important;
+  }
+  .global-nav.open {
+    visibility: visible;
+    pointer-events: auto;
+    clip-path: inset(0 0 0 0);
+    -webkit-clip-path: inset(0 0 0 0);
+    transform: none !important;
+    transition:
+      clip-path .48s var(--ease-out),
+      -webkit-clip-path .48s var(--ease-out),
+      visibility 0s linear 0s !important;
+  }
+  .global-nav a {
+    width: 100%;
+    padding: 11px 0 12px !important;
+    opacity: 0 !important;
+    transform: translateY(-8px) !important;
+    transition: opacity .22s ease, transform .32s var(--ease-out) !important;
+  }
+  .global-nav.open a {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+  }
+  .global-nav.open a:nth-child(1){transition-delay:.12s !important;}
+  .global-nav.open a:nth-child(2){transition-delay:.16s !important;}
+  .global-nav.open a:nth-child(3){transition-delay:.20s !important;}
+  .global-nav.open a:nth-child(4){transition-delay:.24s !important;}
+  .global-nav.open a:nth-child(5){transition-delay:.28s !important;}
+
+  /* Keep modal action typography identical to the CONTACT action button. */
+  .contact-button,
+  .dialog-ok {
+    font-family: var(--serif);
+    font-size: clamp(16px, 4.4vw, 19px) !important;
+    font-weight: 400;
+    letter-spacing: .14em !important;
+  }
+  .dialog-ok {
+    width: min(78%, 270px);
+    min-width: 0;
+    height: 56px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .contact-dialog h2 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(27px, 7.3vw, 34px);
+    line-height: 1.42;
+    letter-spacing: .05em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .global-nav,
+  .global-nav a,
+  .dialog-ok::before { transition-duration: .01ms !important; }
+}
+
 </style>
 </head>
 <body>
@@ -403,25 +558,38 @@
   };
 
   let closingDialog = false;
-  const closeDialog = () => {
+  const dialogOk = document.querySelector('.dialog-ok');
+  const closeDialog = ({ animateCloseButton = false } = {}) => {
     if (!dialog?.open || closingDialog) return;
     closingDialog = true;
-    setDialogOriginFromButton();
-    dialog.classList.remove('is-open');
-    dialog.classList.add('is-closing');
-    const finish = () => {
-      dialog.classList.remove('is-closing');
-      dialog.close();
-      contactButton?.classList.remove('is-modal-open', 'is-activating');
-      closingDialog = false;
+
+    const beginShrink = () => {
+      setDialogOriginFromButton();
+      dialog.classList.remove('is-open');
+      dialog.classList.add('is-closing');
+      const finish = () => {
+        dialog.classList.remove('is-closing');
+        dialog.close();
+        dialogOk?.classList.remove('is-activating');
+        contactButton?.classList.remove('is-modal-open', 'is-activating');
+        closingDialog = false;
+      };
+      if (prefersReduced) finish();
+      else window.setTimeout(finish, 540);
     };
-    if (prefersReduced) finish();
-    else window.setTimeout(finish, 540);
+
+    if (animateCloseButton && dialogOk) {
+      dialogOk.classList.add('is-activating');
+      if (prefersReduced) beginShrink();
+      else window.setTimeout(beginShrink, 420);
+    } else {
+      beginShrink();
+    }
   };
 
   contactButton?.addEventListener('click', openDialog);
-  document.querySelector('.dialog-close')?.addEventListener('click', closeDialog);
-  document.querySelector('.dialog-ok')?.addEventListener('click', closeDialog);
+  document.querySelector('.dialog-close')?.addEventListener('click', () => closeDialog());
+  dialogOk?.addEventListener('click', () => closeDialog({ animateCloseButton: true }));
   dialog?.addEventListener('cancel', (event) => {
     event.preventDefault();
     closeDialog();
@@ -489,23 +657,15 @@
       const sectionTopOnScreen = sectionAbsoluteTop - targetScroll;
 
       if (media && mediaShell) {
-        let focusP;
-        if (scrollDirection >= 0) {
-          // Downward: complete focus exactly as the section top reaches the header/top.
-          const startY = viewport * (coarsePointer ? 0.78 : 0.70);
-          const endY = headerHeight;
-          focusP = clamp((startY - sectionTopOnScreen) / Math.max(1, startY - endY), 0, 1);
-        } else {
-          // Upward: image returns soft, then resolves as it re-enters the viewport.
-          const mediaRect = mediaShell.getBoundingClientRect();
-          const mediaAbsoluteBottom = targetScroll + mediaRect.bottom;
-          const mediaBottomOnScreen = mediaAbsoluteBottom - targetScroll;
-          const startBottom = viewport * 0.06;
-          const endBottom = viewport * (coarsePointer ? 0.58 : 0.50);
-          focusP = clamp((mediaBottomOnScreen - startBottom) / Math.max(1, endBottom - startBottom), 0, 1);
-          // Once the section top reaches its anchor, always be fully sharp.
-          if (sectionTopOnScreen >= 0 && sectionTopOnScreen <= headerHeight) focusP = 1;
-        }
+        // v5.7: use the image block itself as the focus trigger.  WORKS already
+        // behaved correctly because its image starts the section on mobile;
+        // using the media top gives ABOUT / PROJECTS the same timing and makes
+        // the effect naturally reversible when scrolling upward.
+        const mediaRect = mediaShell.getBoundingClientRect();
+        const mediaTopOnScreen = mediaRect.top;
+        const startY = viewport * (coarsePointer ? 0.78 : 0.70);
+        const endY = headerHeight;
+        const focusP = clamp((startY - mediaTopOnScreen) / Math.max(1, startY - endY), 0, 1);
 
         const focus = easeOutCubic(focusP);
         const blurMax = coarsePointer ? 12 : 18;
@@ -532,17 +692,8 @@
       if (copy) copy.style.setProperty('--section-copy-y', `${centered * 8}px`);
 
       if (contactMedia) {
-        let cpRaw;
-        if (scrollDirection >= 0) {
-          const startY = viewport * (coarsePointer ? 0.78 : 0.70);
-          cpRaw = clamp((startY - sectionTopOnScreen) / Math.max(1, startY - headerHeight), 0, 1);
-        } else {
-          const contactRect = section.getBoundingClientRect();
-          const contactAbsoluteBottom = targetScroll + contactRect.bottom;
-          const bottomOnScreen = contactAbsoluteBottom - targetScroll;
-          cpRaw = clamp((bottomOnScreen - viewport * 0.06) / (viewport * 0.54), 0, 1);
-          if (sectionTopOnScreen >= 0 && sectionTopOnScreen <= headerHeight) cpRaw = 1;
-        }
+        const startY = viewport * (coarsePointer ? 0.78 : 0.70);
+        const cpRaw = clamp((startY - sectionTopOnScreen) / Math.max(1, startY - headerHeight), 0, 1);
         const cp = easeOutCubic(cpRaw);
         contactMedia.style.setProperty('--contact-y', `${centered * -22}px`);
         contactMedia.style.setProperty('--contact-blur', `${(12 * (1 - cp)).toFixed(2)}px`);
