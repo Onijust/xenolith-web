@@ -339,6 +339,38 @@
   .dialog-ok::before { transition-duration: .01ms !important; }
 }
 
+
+/* ============================================================
+   Xenolith v5.8 — mobile nav line transition + header-safe jumps
+   ============================================================ */
+
+/* Fine alignment: lower the red slash so it sits on the tagline baseline. */
+.hero-tagline::before { top: .88em; }
+
+@media (max-width:760px) {
+  /* Use transform-based underline animation so outgoing and incoming lines
+     can move at the same time without changing the v5.7 menu layout. */
+  .global-nav a::after {
+    left: 0 !important;
+    right: auto !important;
+    width: 100%;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform .24s cubic-bezier(.22,.61,.36,1) !important;
+  }
+  .global-nav a.active::after,
+  .global-nav a.nav-line-in::after {
+    transform: scaleX(1);
+  }
+  .global-nav a.nav-line-out::after {
+    transform: scaleX(0) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .global-nav a::after { transition-duration: .01ms !important; }
+}
+
 </style>
 </head>
 <body>
@@ -475,18 +507,103 @@
     nav?.classList.toggle('open', !open);
     document.body.classList.toggle('menu-open', !open);
   });
-  navLinks.forEach(link => link.addEventListener('click', closeMenu));
-  window.addEventListener('resize', () => {
-    if (window.innerWidth > 760) closeMenu();
-  }, { passive: true });
+  const isMobileNav = () => window.innerWidth <= 760;
+  let navLineTransitioning = false;
+  let navDestinationLock = null;
+  let navDestinationTimer = 0;
 
-  document.querySelectorAll('a[href^="#"]').forEach((link) => {
+  const setActiveNavLink = (activeLink) => {
+    navLinks.forEach(link => link.classList.toggle('active', link === activeLink));
+  };
+
+  const scrollToAnchorTarget = (target) => {
+    if (!target) return;
+    const behavior = prefersReduced ? 'auto' : 'smooth';
+
+    if (isMobileNav()) {
+      const isHome = target.id === 'home';
+      const headerHeight = header?.getBoundingClientRect().height || 72;
+      const breathingRoom = 14;
+      const absoluteTop = window.scrollY + target.getBoundingClientRect().top;
+      const destination = isHome ? 0 : Math.max(0, absoluteTop - headerHeight - breathingRoom);
+      window.scrollTo({ top: destination, behavior });
+      return;
+    }
+
+    target.scrollIntoView({ behavior, block: 'start' });
+  };
+
+  const releaseNavDestinationLock = () => {
+    window.clearTimeout(navDestinationTimer);
+    navDestinationTimer = 0;
+    navDestinationLock = null;
+    refreshActive();
+  };
+
+  navLinks.forEach((link) => {
     link.addEventListener('click', (event) => {
       const selector = link.getAttribute('href');
       const target = selector ? document.querySelector(selector) : null;
       if (!target) return;
       event.preventDefault();
-      target.scrollIntoView({ behavior: prefersReduced ? 'auto' : 'smooth', block: 'start' });
+
+      if (!isMobileNav()) {
+        closeMenu();
+        scrollToAnchorTarget(target);
+        return;
+      }
+
+      if (navLineTransitioning) return;
+
+      const current = navLinks.find(item => item.classList.contains('active')) || null;
+      const sameDestination = current === link;
+
+      if (sameDestination || !nav?.classList.contains('open')) {
+        setActiveNavLink(link);
+        closeMenu();
+        navDestinationLock = link;
+        scrollToAnchorTarget(target);
+        navDestinationTimer = window.setTimeout(releaseNavDestinationLock, prefersReduced ? 30 : 900);
+        return;
+      }
+
+      navLineTransitioning = true;
+      navDestinationLock = link;
+      current?.classList.add('nav-line-out');
+      link.classList.add('nav-line-in');
+
+      const lineDuration = prefersReduced ? 0 : 240;
+      window.setTimeout(() => {
+        setActiveNavLink(link);
+        current?.classList.remove('nav-line-out');
+        link.classList.remove('nav-line-in');
+        navLineTransitioning = false;
+
+        /* The requested sequence is: line completes -> destination jump. */
+        closeMenu();
+        scrollToAnchorTarget(target);
+
+        window.clearTimeout(navDestinationTimer);
+        navDestinationTimer = window.setTimeout(releaseNavDestinationLock, prefersReduced ? 30 : 900);
+      }, lineDuration);
+    });
+  });
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 760) {
+      closeMenu();
+      releaseNavDestinationLock();
+    }
+  }, { passive: true });
+
+  document.querySelectorAll('a[href^="#"]').forEach((link) => {
+    if (navLinks.includes(link)) return;
+    link.addEventListener('click', (event) => {
+      const selector = link.getAttribute('href');
+      const target = selector ? document.querySelector(selector) : null;
+      if (!target) return;
+      event.preventDefault();
+      scrollToAnchorTarget(target);
     });
   });
 
@@ -503,6 +620,10 @@
   let rafId = 0;
 
   const refreshActive = () => {
+    if (navDestinationLock) {
+      setActiveNavLink(navDestinationLock);
+      return;
+    }
     const viewport = Math.max(window.innerHeight || 0, document.documentElement.clientHeight || 0, 1);
     const marker = targetScroll + viewport * 0.32;
     let current = 'home';
