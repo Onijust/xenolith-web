@@ -341,7 +341,7 @@
 
 
 /* ============================================================
-   Xenolith v5.8 — mobile nav line transition + header-safe jumps
+   Xenolith v5.9 — visible nav-line growth + flush header jumps
    ============================================================ */
 
 /* Fine alignment: lower the red slash so it sits on the tagline baseline. */
@@ -364,6 +364,12 @@
   }
   .global-nav a.nav-line-out::after {
     transform: scaleX(0) !important;
+  }
+  /* Prepare a newly tapped destination at true zero width before animating.
+     This prevents the active/focus state from flashing a full red line first. */
+  .global-nav a.nav-line-prep::after {
+    transform: scaleX(0) !important;
+    transition: none !important;
   }
 }
 
@@ -523,9 +529,11 @@
     if (isMobileNav()) {
       const isHome = target.id === 'home';
       const headerHeight = header?.getBoundingClientRect().height || 72;
-      const breathingRoom = 14;
       const absoluteTop = window.scrollY + target.getBoundingClientRect().top;
-      const destination = isHome ? 0 : Math.max(0, absoluteTop - headerHeight - breathingRoom);
+      /* Align the section top exactly with the bottom edge of the fixed header.
+         v5.8 added 14 CSS px of breathing room, which measured as a 27 px
+         visible strip in the supplied iPhone screenshot. */
+      const destination = isHome ? 0 : Math.max(0, absoluteTop - headerHeight);
       window.scrollTo({ top: destination, behavior });
       return;
     }
@@ -569,14 +577,22 @@
 
       navLineTransitioning = true;
       navDestinationLock = link;
+
+      /* Force the incoming underline to render at zero width first.
+         Without this preparation Safari can paint the new active underline
+         at full width for one frame, making it look as if it simply appears. */
+      link.classList.remove('active', 'nav-line-in', 'nav-line-out');
+      link.classList.add('nav-line-prep');
       current?.classList.add('nav-line-out');
+      getComputedStyle(link, '::after').transform; // flush the zero-width state
+      link.classList.remove('nav-line-prep');
       link.classList.add('nav-line-in');
 
       const lineDuration = prefersReduced ? 0 : 240;
       window.setTimeout(() => {
         setActiveNavLink(link);
         current?.classList.remove('nav-line-out');
-        link.classList.remove('nav-line-in');
+        link.classList.remove('nav-line-in', 'nav-line-prep');
         navLineTransitioning = false;
 
         /* The requested sequence is: line completes -> destination jump. */
