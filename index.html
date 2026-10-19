@@ -30,6 +30,160 @@
 @media (hover:none),(pointer:coarse){.global-nav a:hover,.contact-button:hover{transform:none;} .global-nav a:hover::after{right:100%;} .contact-button:hover::before{width:0;}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important;} .hero-media,.hero-copy,.media-image,.panel-copy,.contact-media{transform:none !important;} .media-image,.hero-media,.contact-media{filter:none !important;opacity:1 !important;} .motion-copy>*{opacity:1 !important;transform:none !important;}}
 
+
+
+/* ============================================================
+   Xenolith v5.6 — mobile polish + focus timing + contact motion
+   ============================================================ */
+
+/* SCROLL cue removed in markup; guard against legacy fragments. */
+.scroll-cue, .scroll-line { display: none !important; }
+
+/* CONTACT modal / button: unified interaction on desktop + mobile. */
+.contact-button {
+  font-family: var(--serif);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition:
+    border-color .32s ease,
+    color .32s ease,
+    transform .42s var(--ease-out),
+    box-shadow .42s var(--ease-out),
+    letter-spacing .42s var(--ease-out);
+}
+.contact-button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  background: var(--accent);
+  transform: translateX(-102%);
+  transform-origin: left center;
+  transition: transform .42s var(--ease-out);
+}
+.contact-button > span { position: relative; z-index: 2; }
+.contact-button.is-activating,
+.contact-button.is-modal-open {
+  color: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 14px 42px rgba(239,28,37,.22);
+}
+.contact-button.is-activating::before,
+.contact-button.is-modal-open::before { width: 100% !important; transform: translateX(0); }
+.contact-button.is-activating .button-arrow,
+.contact-button.is-modal-open .button-arrow { transform: translateX(8px); }
+
+.contact-dialog {
+  --dialog-from-x: 0px;
+  --dialog-from-y: 0px;
+  --dialog-from-scale-x: .18;
+  --dialog-from-scale-y: .18;
+  opacity: 0;
+  transform: translate(var(--dialog-from-x), var(--dialog-from-y))
+             scale(var(--dialog-from-scale-x), var(--dialog-from-scale-y));
+  transform-origin: center center;
+  transition:
+    transform .52s cubic-bezier(.16,1,.3,1),
+    opacity .34s ease;
+  will-change: transform, opacity;
+}
+.contact-dialog.is-open {
+  opacity: 1;
+  transform: translate(0,0) scale(1,1);
+}
+.contact-dialog.is-closing {
+  opacity: 0;
+  transform: translate(var(--dialog-from-x), var(--dialog-from-y))
+             scale(var(--dialog-from-scale-x), var(--dialog-from-scale-y));
+}
+.contact-dialog::backdrop {
+  background: rgba(8,16,24,.56);
+  opacity: 0;
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  transition: opacity .42s ease, backdrop-filter .42s ease, -webkit-backdrop-filter .42s ease;
+}
+.contact-dialog.is-open::backdrop {
+  opacity: 1;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.contact-dialog.is-closing::backdrop { opacity: 0; }
+
+@media (max-width:760px) {
+  :root { --mobile-heading-size: clamp(25px, 7.7vw, 33px); }
+
+  /* Header: only logo + hamburger when closed. */
+  .global-nav {
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-20px) !important;
+    transition:
+      opacity .30s ease,
+      transform .46s var(--ease-out),
+      visibility 0s linear .46s;
+  }
+  .global-nav.open {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) !important;
+    transition:
+      opacity .30s ease,
+      transform .46s var(--ease-out),
+      visibility 0s linear 0s;
+  }
+
+  /* Typography: one consistent heading voice on mobile. */
+  .hero h1,
+  .panel h2,
+  .contact h2 {
+    font-family: var(--serif);
+    font-size: var(--mobile-heading-size) !important;
+    line-height: 1.48;
+    letter-spacing: .04em;
+    font-weight: 400;
+  }
+  .hero-line > span { white-space: nowrap; }
+  .hero-copy { left: 0; right: 0; max-width: none; }
+
+  .section-label,
+  .global-nav a,
+  .contact-button {
+    font-family: var(--serif);
+  }
+  .section-label,
+  .global-nav a {
+    font-size: clamp(13px, 3.7vw, 16px) !important;
+    letter-spacing: .16em !important;
+  }
+  .contact-button {
+    font-size: clamp(16px, 4.4vw, 19px);
+    letter-spacing: .14em !important;
+  }
+
+  /* Keep the modal comfortably inside phone viewports. */
+  .contact-dialog {
+    width: min(88vw, 520px);
+    max-height: min(76vh, 620px);
+    padding: 42px 24px 28px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contact-button::before,
+  .contact-dialog,
+  .contact-dialog::backdrop {
+    transition-duration: .01ms !important;
+  }
+  .contact-dialog {
+    transform: none !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -63,11 +217,7 @@
           </h1>
           <p class="hero-tagline">Ideas from outside the ordinary.</p>
         </div>
-        <a class="scroll-cue" href="#about" aria-label="ABOUTへスクロール">
-          <span>SCROLL</span>
-          <span class="scroll-line" aria-hidden="true"></span>
-        </a>
-      </div>
+</div>
     </section>
     <section class="panel panel-light motion-section" id="about" data-motion-section>
       <div class="panel-copy motion-copy">
@@ -127,7 +277,288 @@
   </dialog>
   <script>
 
-(()=>{const prefersReduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;const coarsePointer=window.matchMedia('(hover: none), (pointer: coarse)').matches;const header=document.querySelector('.site-header');const hero=document.querySelector('.hero');const heroMedia=document.querySelector('.hero-media');const heroCopy=document.querySelector('[data-hero-copy]');const sections=[...document.querySelectorAll('[data-motion-section]')];const navLinks=[...document.querySelectorAll('.global-nav a')];const menuButton=document.querySelector('.menu-button');const nav=document.querySelector('.global-nav');const dialog=document.getElementById('contact-dialog');const year=document.getElementById('year');if(year)year.textContent=new Date().getFullYear();const sectionMap=[{id:'home',section:document.getElementById('home')},{id:'about',section:document.getElementById('about')},{id:'works',section:document.getElementById('works')},{id:'projects',section:document.getElementById('projects')},{id:'contact',section:document.getElementById('contact')}];const revealObserver=new IntersectionObserver((entries)=>{entries.forEach((entry)=>{if(entry.isIntersecting)entry.target.classList.add('is-visible');});},{threshold:0.12,rootMargin:'0px 0px -7% 0px'});sections.forEach(section=>revealObserver.observe(section));const closeMenu=()=>{menuButton?.setAttribute('aria-expanded','false');nav?.classList.remove('open');document.body.classList.remove('menu-open');};menuButton?.addEventListener('click',()=>{const open=menuButton.getAttribute('aria-expanded')==='true';menuButton.setAttribute('aria-expanded',String(!open));nav?.classList.toggle('open',!open);document.body.classList.toggle('menu-open',!open);});navLinks.forEach(link=>link.addEventListener('click',closeMenu));window.addEventListener('resize',()=>{if(window.innerWidth>760)closeMenu();},{passive:true});document.querySelectorAll('a[href^="#"]').forEach((link)=>{link.addEventListener('click',(event)=>{const selector=link.getAttribute('href');const target=selector?document.querySelector(selector):null;if(!target)return;event.preventDefault();target.scrollIntoView({behavior:prefersReduced?'auto':'smooth',block:'start'});});});const closeDialog=()=>dialog?.open&&dialog.close();document.querySelector('[data-contact]')?.addEventListener('click',()=>dialog?.showModal());document.querySelector('.dialog-close')?.addEventListener('click',closeDialog);document.querySelector('.dialog-ok')?.addEventListener('click',closeDialog);dialog?.addEventListener('click',(event)=>{const rect=dialog.getBoundingClientRect();const outside=event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom;if(outside)closeDialog();});const clamp=(n,min,max)=>Math.min(max,Math.max(min,n));const lerp=(a,b,t)=>a+(b-a)*t;const easeOutCubic=(t)=>1-Math.pow(1-t,3);const easeInOutSine=(t)=>-(Math.cos(Math.PI*t)-1)/2;let targetScroll=window.scrollY||window.pageYOffset||0;let visualScroll=targetScroll;let rafId=0;const readScroll=()=>window.scrollY||window.pageYOffset||document.documentElement.scrollTop||0;const refreshActive=()=>{const viewport=Math.max(window.innerHeight||0,document.documentElement.clientHeight||0,1);const marker=targetScroll+viewport*0.32;let current='home';sectionMap.forEach((item)=>{if(item.section&&marker>=item.section.offsetTop)current=item.id;});navLinks.forEach(link=>{const hash=(link.getAttribute('href')||'').replace('#','');link.classList.toggle('active',hash===current);});};const onScroll=()=>{targetScroll=readScroll();header?.classList.toggle('scrolled',targetScroll>28);refreshActive();};window.addEventListener('scroll',onScroll,{passive:true});window.addEventListener('resize',refreshActive,{passive:true});onScroll();if(!coarsePointer){document.querySelectorAll('.magnetic-button').forEach((button)=>{button.addEventListener('pointermove',(event)=>{const r=button.getBoundingClientRect();const x=(event.clientX-(r.left+r.width/2))*0.10;const y=(event.clientY-(r.top+r.height/2))*0.12;button.style.setProperty('--mag-x',`${x}px`);button.style.setProperty('--mag-y',`${y}px`);});button.addEventListener('pointerleave',()=>{button.style.setProperty('--mag-x','0px');button.style.setProperty('--mag-y','0px');});});} if(prefersReduced)return;const render=()=>{visualScroll=lerp(visualScroll,targetScroll,coarsePointer?0.22:0.12);const viewport=Math.max(window.innerHeight||0,document.documentElement.clientHeight||0,1);if(hero&&heroMedia){const heroHeight=hero.offsetHeight||1;const heroProgress=clamp(visualScroll/heroHeight,0,1.15);heroMedia.style.setProperty('--hero-y',`${visualScroll*0.055}px`);heroMedia.style.setProperty('--hero-scale',String(1.055+heroProgress*0.018));heroCopy?.style.setProperty('--copy-y',`${visualScroll*0.095}px`);heroCopy?.style.setProperty('--copy-opacity',String(clamp(1-heroProgress*1.16,0,1)));const heroFocusStart=heroHeight*0.55;const heroFocusEnd=heroHeight*0.08;const heroFocusP=clamp((heroFocusStart-visualScroll)/Math.max(1,heroFocusStart-heroFocusEnd),0,1);const heroSharp=easeOutCubic(heroFocusP);const heroBlur=18*(1-heroSharp);heroMedia.style.setProperty('--hero-focus-blur',`${heroBlur.toFixed(2)}px`);heroMedia.style.setProperty('--hero-focus-opacity',(0.76+heroSharp*0.24).toFixed(3));heroMedia.style.setProperty('--hero-focus-sat',(0.84+heroSharp*0.12).toFixed(3));heroMedia.style.setProperty('--hero-focus-bright',(0.91+heroSharp*0.09).toFixed(3));}sections.forEach((section)=>{const media=section.querySelector('.media-image');const mediaShell=section.querySelector('.panel-media');const copy=section.querySelector('.panel-copy');const contactMedia=section.querySelector('.contact-media');const sectionRect=section.getBoundingClientRect();const sectionAbsoluteTop=targetScroll+sectionRect.top;const h=section.offsetHeight||1;const raw=(visualScroll+viewport-sectionAbsoluteTop)/(viewport+h);const p=clamp(raw,0,1);const centered=p-0.5;if(media&&mediaShell){const mediaRect=mediaShell.getBoundingClientRect();const mediaAbsoluteTop=targetScroll+mediaRect.top;const visualMediaTop=mediaAbsoluteTop-visualScroll;const startY=viewport*(coarsePointer?0.54:0.42);const endY=viewport*(coarsePointer?0.20:0.12);const focusP=clamp((startY-visualMediaTop)/Math.max(1,startY-endY),0,1);const focus=easeOutCubic(focusP);const blurMax=coarsePointer?12:18;const blur=blurMax*(1-focus);const opacity=0.62+focus*0.38;const saturation=0.81+focus*0.19;const brightness=0.89+focus*0.11;const scale=(coarsePointer?1.09:1.105)-focus*(coarsePointer?0.025:0.035);media.style.setProperty('--focus-blur',`${blur.toFixed(2)}px`);media.style.setProperty('--focus-opacity',opacity.toFixed(3));media.style.setProperty('--focus-sat',saturation.toFixed(3));media.style.setProperty('--focus-bright',brightness.toFixed(3));media.style.setProperty('--focus-scale',scale.toFixed(4));media.style.setProperty('--media-y',`${centered*-24}px`);const sheenPhase=clamp((focusP-0.05)/0.90,0,1);const sheen=Math.sin(Math.PI*sheenPhase)*0.50;const sheenX=-20+easeInOutSine(sheenPhase)*42;mediaShell.style.setProperty('--focus-sheen',sheen.toFixed(3));mediaShell.style.setProperty('--focus-sheen-x',`${sheenX.toFixed(2)}%`);} if(copy)copy.style.setProperty('--section-copy-y',`${centered*8}px`);if(contactMedia){const contactRect=section.getBoundingClientRect();const contactAbsoluteTop=targetScroll+contactRect.top;const visualContactTop=contactAbsoluteTop-visualScroll;const startY=viewport*(coarsePointer?0.58:0.44);const endY=viewport*(coarsePointer?0.22:0.14);const cpRaw=clamp((startY-visualContactTop)/Math.max(1,startY-endY),0,1);const cp=easeOutCubic(cpRaw);contactMedia.style.setProperty('--contact-y',`${centered*-22}px`);contactMedia.style.setProperty('--contact-blur',`${(12*(1-cp)).toFixed(2)}px`);contactMedia.style.setProperty('--contact-opacity',(0.70+cp*0.30).toFixed(3));contactMedia.style.setProperty('--contact-sat',(0.84+cp*0.16).toFixed(3));contactMedia.style.setProperty('--contact-bright',(0.90+cp*0.10).toFixed(3));contactMedia.style.setProperty('--contact-scale',(1.09-cp*0.022).toFixed(4));}});rafId=window.requestAnimationFrame(render);};rafId=window.requestAnimationFrame(render);window.addEventListener('pagehide',()=>window.cancelAnimationFrame(rafId),{once:true});})();
+(() => {
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const coarsePointer = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+
+  const header = document.querySelector('.site-header');
+  const hero = document.querySelector('.hero');
+  const heroMedia = document.querySelector('.hero-media');
+  const heroCopy = document.querySelector('[data-hero-copy]');
+  const sections = [...document.querySelectorAll('[data-motion-section]')];
+  const navLinks = [...document.querySelectorAll('.global-nav a')];
+  const menuButton = document.querySelector('.menu-button');
+  const nav = document.querySelector('.global-nav');
+  const dialog = document.getElementById('contact-dialog');
+  const contactButton = document.querySelector('[data-contact]');
+  const year = document.getElementById('year');
+  if (year) year.textContent = new Date().getFullYear();
+
+  const sectionMap = [
+    { id: 'home', section: document.getElementById('home') },
+    { id: 'about', section: document.getElementById('about') },
+    { id: 'works', section: document.getElementById('works') },
+    { id: 'projects', section: document.getElementById('projects') },
+    { id: 'contact', section: document.getElementById('contact') }
+  ];
+
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) entry.target.classList.add('is-visible');
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -7% 0px' });
+  sections.forEach(section => revealObserver.observe(section));
+
+  const closeMenu = () => {
+    menuButton?.setAttribute('aria-expanded', 'false');
+    nav?.classList.remove('open');
+    document.body.classList.remove('menu-open');
+  };
+  menuButton?.addEventListener('click', () => {
+    const open = menuButton.getAttribute('aria-expanded') === 'true';
+    menuButton.setAttribute('aria-expanded', String(!open));
+    nav?.classList.toggle('open', !open);
+    document.body.classList.toggle('menu-open', !open);
+  });
+  navLinks.forEach(link => link.addEventListener('click', closeMenu));
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 760) closeMenu();
+  }, { passive: true });
+
+  document.querySelectorAll('a[href^="#"]').forEach((link) => {
+    link.addEventListener('click', (event) => {
+      const selector = link.getAttribute('href');
+      const target = selector ? document.querySelector(selector) : null;
+      if (!target) return;
+      event.preventDefault();
+      target.scrollIntoView({ behavior: prefersReduced ? 'auto' : 'smooth', block: 'start' });
+    });
+  });
+
+  const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+  const easeInOutSine = (t) => -(Math.cos(Math.PI * t) - 1) / 2;
+  const readScroll = () => window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+
+  let targetScroll = readScroll();
+  let visualScroll = targetScroll;
+  let previousScroll = targetScroll;
+  let scrollDirection = 1;
+  let rafId = 0;
+
+  const refreshActive = () => {
+    const viewport = Math.max(window.innerHeight || 0, document.documentElement.clientHeight || 0, 1);
+    const marker = targetScroll + viewport * 0.32;
+    let current = 'home';
+    sectionMap.forEach((item) => {
+      if (item.section && marker >= item.section.offsetTop) current = item.id;
+    });
+    navLinks.forEach(link => {
+      const hash = (link.getAttribute('href') || '').replace('#', '');
+      link.classList.toggle('active', hash === current);
+    });
+  };
+
+  const onScroll = () => {
+    const next = readScroll();
+    if (Math.abs(next - previousScroll) > 1) scrollDirection = next > previousScroll ? 1 : -1;
+    previousScroll = next;
+    targetScroll = next;
+    header?.classList.toggle('scrolled', targetScroll > 28);
+    refreshActive();
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', refreshActive, { passive: true });
+  onScroll();
+
+  // CONTACT button -> red fill -> modal grows from the button.
+  const setDialogOriginFromButton = () => {
+    if (!dialog || !contactButton) return;
+    const b = contactButton.getBoundingClientRect();
+    // dialog is centered by the browser; estimate its final box after showModal.
+    const d = dialog.getBoundingClientRect();
+    const dx = (b.left + b.width / 2) - (d.left + d.width / 2);
+    const dy = (b.top + b.height / 2) - (d.top + d.height / 2);
+    const sx = clamp(b.width / Math.max(d.width, 1), 0.10, 0.92);
+    const sy = clamp(b.height / Math.max(d.height, 1), 0.08, 0.72);
+    dialog.style.setProperty('--dialog-from-x', `${dx.toFixed(1)}px`);
+    dialog.style.setProperty('--dialog-from-y', `${dy.toFixed(1)}px`);
+    dialog.style.setProperty('--dialog-from-scale-x', sx.toFixed(3));
+    dialog.style.setProperty('--dialog-from-scale-y', sy.toFixed(3));
+  };
+
+  const openDialog = () => {
+    if (!dialog || !contactButton || dialog.open) return;
+    contactButton.classList.add('is-activating');
+    const fillDelay = prefersReduced ? 0 : 360;
+    window.setTimeout(() => {
+      dialog.showModal();
+      dialog.classList.remove('is-closing');
+      setDialogOriginFromButton();
+      contactButton.classList.remove('is-activating');
+      contactButton.classList.add('is-modal-open');
+      requestAnimationFrame(() => requestAnimationFrame(() => dialog.classList.add('is-open')));
+    }, fillDelay);
+  };
+
+  let closingDialog = false;
+  const closeDialog = () => {
+    if (!dialog?.open || closingDialog) return;
+    closingDialog = true;
+    setDialogOriginFromButton();
+    dialog.classList.remove('is-open');
+    dialog.classList.add('is-closing');
+    const finish = () => {
+      dialog.classList.remove('is-closing');
+      dialog.close();
+      contactButton?.classList.remove('is-modal-open', 'is-activating');
+      closingDialog = false;
+    };
+    if (prefersReduced) finish();
+    else window.setTimeout(finish, 540);
+  };
+
+  contactButton?.addEventListener('click', openDialog);
+  document.querySelector('.dialog-close')?.addEventListener('click', closeDialog);
+  document.querySelector('.dialog-ok')?.addEventListener('click', closeDialog);
+  dialog?.addEventListener('cancel', (event) => {
+    event.preventDefault();
+    closeDialog();
+  });
+  dialog?.addEventListener('click', (event) => {
+    const rect = dialog.getBoundingClientRect();
+    const outside = event.clientX < rect.left || event.clientX > rect.right ||
+                    event.clientY < rect.top || event.clientY > rect.bottom;
+    if (outside) closeDialog();
+  });
+
+  if (!coarsePointer) {
+    document.querySelectorAll('.magnetic-button').forEach((button) => {
+      button.addEventListener('pointermove', (event) => {
+        const r = button.getBoundingClientRect();
+        const x = (event.clientX - (r.left + r.width / 2)) * 0.10;
+        const y = (event.clientY - (r.top + r.height / 2)) * 0.12;
+        button.style.setProperty('--mag-x', `${x}px`);
+        button.style.setProperty('--mag-y', `${y}px`);
+      });
+      button.addEventListener('pointerleave', () => {
+        button.style.setProperty('--mag-x', '0px');
+        button.style.setProperty('--mag-y', '0px');
+      });
+    });
+  }
+
+  if (prefersReduced) return;
+
+  const render = () => {
+    visualScroll = lerp(visualScroll, targetScroll, coarsePointer ? 0.22 : 0.12);
+    const viewport = Math.max(window.innerHeight || 0, document.documentElement.clientHeight || 0, 1);
+    const headerHeight = header?.offsetHeight || (coarsePointer ? 72 : 82);
+
+    if (hero && heroMedia) {
+      const heroHeight = hero.offsetHeight || 1;
+      const heroProgress = clamp(visualScroll / heroHeight, 0, 1.15);
+      heroMedia.style.setProperty('--hero-y', `${visualScroll * 0.055}px`);
+      heroMedia.style.setProperty('--hero-scale', String(1.055 + heroProgress * 0.018));
+      heroCopy?.style.setProperty('--copy-y', `${visualScroll * 0.095}px`);
+      heroCopy?.style.setProperty('--copy-opacity', String(clamp(1 - heroProgress * 1.16, 0, 1)));
+
+      const heroFocusStart = heroHeight * 0.55;
+      const heroFocusEnd = heroHeight * 0.08;
+      const heroFocusP = clamp((heroFocusStart - targetScroll) / Math.max(1, heroFocusStart - heroFocusEnd), 0, 1);
+      const heroSharp = easeOutCubic(heroFocusP);
+      heroMedia.style.setProperty('--hero-focus-blur', `${(18 * (1 - heroSharp)).toFixed(2)}px`);
+      heroMedia.style.setProperty('--hero-focus-opacity', (0.76 + heroSharp * 0.24).toFixed(3));
+      heroMedia.style.setProperty('--hero-focus-sat', (0.84 + heroSharp * 0.12).toFixed(3));
+      heroMedia.style.setProperty('--hero-focus-bright', (0.91 + heroSharp * 0.09).toFixed(3));
+    }
+
+    sections.forEach((section) => {
+      const media = section.querySelector('.media-image');
+      const mediaShell = section.querySelector('.panel-media');
+      const copy = section.querySelector('.panel-copy');
+      const contactMedia = section.querySelector('.contact-media');
+
+      const sectionRect = section.getBoundingClientRect();
+      const sectionAbsoluteTop = targetScroll + sectionRect.top;
+      const h = section.offsetHeight || 1;
+      const raw = (visualScroll + viewport - sectionAbsoluteTop) / (viewport + h);
+      const p = clamp(raw, 0, 1);
+      const centered = p - 0.5;
+      const sectionTopOnScreen = sectionAbsoluteTop - targetScroll;
+
+      if (media && mediaShell) {
+        let focusP;
+        if (scrollDirection >= 0) {
+          // Downward: complete focus exactly as the section top reaches the header/top.
+          const startY = viewport * (coarsePointer ? 0.78 : 0.70);
+          const endY = headerHeight;
+          focusP = clamp((startY - sectionTopOnScreen) / Math.max(1, startY - endY), 0, 1);
+        } else {
+          // Upward: image returns soft, then resolves as it re-enters the viewport.
+          const mediaRect = mediaShell.getBoundingClientRect();
+          const mediaAbsoluteBottom = targetScroll + mediaRect.bottom;
+          const mediaBottomOnScreen = mediaAbsoluteBottom - targetScroll;
+          const startBottom = viewport * 0.06;
+          const endBottom = viewport * (coarsePointer ? 0.58 : 0.50);
+          focusP = clamp((mediaBottomOnScreen - startBottom) / Math.max(1, endBottom - startBottom), 0, 1);
+          // Once the section top reaches its anchor, always be fully sharp.
+          if (sectionTopOnScreen >= 0 && sectionTopOnScreen <= headerHeight) focusP = 1;
+        }
+
+        const focus = easeOutCubic(focusP);
+        const blurMax = coarsePointer ? 12 : 18;
+        const blur = blurMax * (1 - focus);
+        const opacity = 0.62 + focus * 0.38;
+        const saturation = 0.81 + focus * 0.19;
+        const brightness = 0.89 + focus * 0.11;
+        const scale = (coarsePointer ? 1.09 : 1.105) - focus * (coarsePointer ? 0.025 : 0.035);
+
+        media.style.setProperty('--focus-blur', `${blur.toFixed(2)}px`);
+        media.style.setProperty('--focus-opacity', opacity.toFixed(3));
+        media.style.setProperty('--focus-sat', saturation.toFixed(3));
+        media.style.setProperty('--focus-bright', brightness.toFixed(3));
+        media.style.setProperty('--focus-scale', scale.toFixed(4));
+        media.style.setProperty('--media-y', `${centered * -24}px`);
+
+        const sheenPhase = clamp((focusP - 0.05) / 0.90, 0, 1);
+        const sheen = Math.sin(Math.PI * sheenPhase) * 0.50;
+        const sheenX = -20 + easeInOutSine(sheenPhase) * 42;
+        mediaShell.style.setProperty('--focus-sheen', sheen.toFixed(3));
+        mediaShell.style.setProperty('--focus-sheen-x', `${sheenX.toFixed(2)}%`);
+      }
+
+      if (copy) copy.style.setProperty('--section-copy-y', `${centered * 8}px`);
+
+      if (contactMedia) {
+        let cpRaw;
+        if (scrollDirection >= 0) {
+          const startY = viewport * (coarsePointer ? 0.78 : 0.70);
+          cpRaw = clamp((startY - sectionTopOnScreen) / Math.max(1, startY - headerHeight), 0, 1);
+        } else {
+          const contactRect = section.getBoundingClientRect();
+          const contactAbsoluteBottom = targetScroll + contactRect.bottom;
+          const bottomOnScreen = contactAbsoluteBottom - targetScroll;
+          cpRaw = clamp((bottomOnScreen - viewport * 0.06) / (viewport * 0.54), 0, 1);
+          if (sectionTopOnScreen >= 0 && sectionTopOnScreen <= headerHeight) cpRaw = 1;
+        }
+        const cp = easeOutCubic(cpRaw);
+        contactMedia.style.setProperty('--contact-y', `${centered * -22}px`);
+        contactMedia.style.setProperty('--contact-blur', `${(12 * (1 - cp)).toFixed(2)}px`);
+        contactMedia.style.setProperty('--contact-opacity', (0.70 + cp * 0.30).toFixed(3));
+        contactMedia.style.setProperty('--contact-sat', (0.84 + cp * 0.16).toFixed(3));
+        contactMedia.style.setProperty('--contact-bright', (0.90 + cp * 0.10).toFixed(3));
+        contactMedia.style.setProperty('--contact-scale', (1.09 - cp * 0.022).toFixed(4));
+      }
+    });
+
+    rafId = window.requestAnimationFrame(render);
+  };
+
+  rafId = window.requestAnimationFrame(render);
+  window.addEventListener('pagehide', () => window.cancelAnimationFrame(rafId), { once: true });
+})();
 
 </script>
 </body>
