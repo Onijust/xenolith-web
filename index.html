@@ -432,6 +432,21 @@
 
 
 /* ============================================================
+   Xenolith v5.12 — desktop section-label size normalization
+   CONTACT inherited the generic .contact p sizing; force all
+   desktop section labels to the exact same size. Mobile remains
+   on the existing v5.9 mobile rules.
+   ============================================================ */
+@media (min-width: 761px) {
+  .panel .section-label,
+  .contact .section-label {
+    font-size: 11px !important;
+    letter-spacing: .32em !important;
+    line-height: normal;
+  }
+}
+
+/* ============================================================
    Xenolith v5.11 — desktop nav underline choreography
    Mobile v5.9 behavior remains untouched.
    ============================================================ */
