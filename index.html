@@ -1017,7 +1017,7 @@
 
 
 /* ============================================================
-   Xenolith v5.23 — Cloudflare Turnstile integration
+   Xenolith v5.25 — Cloudflare Turnstile integration
    Managed + interaction-only: the widget stays visually quiet unless
    Cloudflare decides that visitor interaction is required.
    ============================================================ */
@@ -1478,6 +1478,9 @@
     throw new Error('Turnstile API did not load.');
   };
 
+  // v5.25: keep Turnstile close to Cloudflare's proven minimal setup.
+  // The widget is rendered only after the confirmation panel is visible.
+  // It begins verification immediately; no execution=execute / execute() pair.
   const ensureTurnstileWidget = async () => {
     if (turnstileWidgetId !== null) return turnstileWidgetId;
     if (!turnstileContainer) throw new Error('Turnstile container is missing.');
@@ -1485,9 +1488,7 @@
     turnstileWidgetId = api.render(turnstileContainer, {
       sitekey: CONTACT_CONFIG.turnstileSitekey,
       theme: 'light',
-      size: 'flexible',
       appearance: 'interaction-only',
-      execution: 'execute',
       action: CONTACT_CONFIG.turnstileAction,
       callback: (token) => {
         turnstileToken = token || '';
@@ -1531,15 +1532,12 @@
         settleTurnstilePending(new Error('Turnstile verification timed out.'));
       }, 30000);
 
-      turnstileShell?.scrollIntoView({
-        behavior: prefersReduced ? 'auto' : 'smooth',
-        block: 'nearest'
-      });
-
+      // If verification has not completed yet (or the token expired), reset the
+      // existing widget. A reset immediately starts a fresh Managed check.
       try {
-        window.turnstile.execute(widgetId);
+        window.turnstile.reset(widgetId);
       } catch (error) {
-        settleTurnstilePending(error instanceof Error ? error : new Error('Turnstile could not start.'));
+        settleTurnstilePending(error instanceof Error ? error : new Error('Turnstile could not restart.'));
       }
     });
   };
@@ -1649,7 +1647,6 @@
         contactButton.classList.remove('is-activating');
         contactButton.classList.add('is-modal-open');
         requestAnimationFrame(() => dialog.classList.add('is-open'));
-        ensureTurnstileWidget().catch((error) => console.warn('[Xenolith Turnstile]', error));
       });
     }, fillDelay);
   };
@@ -1735,6 +1732,9 @@
     populateConfirmation(payload);
     contactReview.classList.remove('is-activating', 'is-busy');
     setContactStep('confirm');
+    requestAnimationFrame(() => {
+      ensureTurnstileWidget().catch((error) => console.warn('[Xenolith Turnstile]', error));
+    });
   });
 
   contactBack?.addEventListener('click', async () => {
