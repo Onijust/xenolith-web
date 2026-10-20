@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Xenolith Website v5.22 — contact white-theme restored; subject wording retained -->
+<!-- Xenolith Website v5.30 — CONTACT first-open origin animation fix -->
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
@@ -93,6 +93,18 @@
 .contact-dialog.is-open {
   opacity: 1;
   transform: translate(0,0) scale(1,1);
+}
+/* v5.30: while the dialog is made measurable, suppress all transitions so
+   the browser never paints a first-frame fade from the viewport center. */
+.contact-dialog.is-preparing {
+  opacity: 0 !important;
+  transition: none !important;
+}
+.contact-dialog.is-preparing::backdrop {
+  opacity: 0 !important;
+  backdrop-filter: blur(0px) !important;
+  -webkit-backdrop-filter: blur(0px) !important;
+  transition: none !important;
 }
 .contact-dialog.is-closing {
   opacity: 0;
@@ -1544,9 +1556,15 @@
     });
   };
 
-  const setDialogOriginFromButton = () => {
+  const snapshotRect = (rect) => ({
+    left: rect.left, top: rect.top, width: rect.width, height: rect.height
+  });
+
+  let pendingContactOriginRect = null;
+
+  const setDialogOriginFromButton = (buttonRect = null) => {
     if (!dialog || !contactButton) return;
-    const b = contactButton.getBoundingClientRect();
+    const b = buttonRect || contactButton.getBoundingClientRect();
     const d = dialog.getBoundingClientRect();
     const dx = (b.left + b.width / 2) - (d.left + d.width / 2);
     const dy = (b.top + b.height / 2) - (d.top + d.height / 2);
@@ -1611,10 +1629,38 @@
     if (!subjectField.contains(event.target)) setSubjectMenu(false);
   });
 
-  messageInput?.addEventListener('input', () => {
+  const CONTACT_MESSAGE_MAX = 2048;
+  let messageIsComposing = false;
+
+  const enforceMessageLimit = () => {
+    if (!messageInput) return;
+    if (messageInput.value.length > CONTACT_MESSAGE_MAX) {
+      messageInput.value = messageInput.value.slice(0, CONTACT_MESSAGE_MAX);
+      const caret = messageInput.value.length;
+      try { messageInput.setSelectionRange(caret, caret); } catch (_) {}
+    }
     if (messageCount) messageCount.textContent = String(messageInput.value.length);
+  };
+
+  messageInput?.addEventListener('compositionstart', () => {
+    messageIsComposing = true;
+  });
+
+  messageInput?.addEventListener('compositionend', () => {
+    messageIsComposing = false;
+    enforceMessageLimit();
+    // Some IMEs commit the final text immediately after compositionend.
+    // Re-check on the next task so the 2048-character cap is never bypassed.
+    window.setTimeout(enforceMessageLimit, 0);
+  });
+
+  messageInput?.addEventListener('input', (event) => {
+    if (!messageIsComposing && !event.isComposing) enforceMessageLimit();
+    else if (messageCount) messageCount.textContent = String(Math.min(messageInput.value.length, CONTACT_MESSAGE_MAX));
     if (contactStatus) contactStatus.textContent = '';
   });
+
+  messageInput?.addEventListener('blur', enforceMessageLimit);
 
   const resetContactFlow = () => {
     contactForm?.reset();
@@ -1638,16 +1684,34 @@
 
   const openDialog = () => {
     if (!dialog || !contactButton || dialog.open) return;
+
+    // Capture the button at the exact click position. This matters when the
+    // button is partly clipped by the viewport and also prevents a stale
+    // origin from the previous open from being used for the first frame.
+    const originRect = pendingContactOriginRect || snapshotRect(contactButton.getBoundingClientRect());
+    pendingContactOriginRect = null;
+
     contactButton.classList.add('is-activating');
     const fillDelay = prefersReduced ? 0 : 360;
     window.setTimeout(() => {
+      // showModal() makes the dialog measurable. Set the transform origin
+      // synchronously BEFORE the browser gets a chance to paint it. In v5.29
+      // this was deferred to requestAnimationFrame(), so the very first open
+      // could paint from the default viewport-center origin.
+      dialog.classList.remove('is-open', 'is-closing');
+      dialog.classList.add('is-preparing');
       dialog.showModal();
+      setDialogOriginFromButton(originRect);
+      void dialog.offsetWidth; // commit the correct closed transform as frame 0
+      dialog.classList.remove('is-preparing');
       dialog.focus({ preventScroll: true });
-      dialog.classList.remove('is-closing');
+
+      contactButton.classList.remove('is-activating');
+      contactButton.classList.add('is-modal-open');
+
       requestAnimationFrame(() => {
-        setDialogOriginFromButton();
-        contactButton.classList.remove('is-activating');
-        contactButton.classList.add('is-modal-open');
+        // A second frame guarantees the transition always starts from the
+        // captured button, including the first open on PC/iOS.
         requestAnimationFrame(() => dialog.classList.add('is-open'));
       });
     }, fillDelay);
@@ -1678,7 +1742,7 @@
 
   const buildContactPayload = () => ({
     subject: subjectInput?.value.trim() || '',
-    message: messageInput?.value.slice(0, 2048) || '',
+    message: messageInput?.value.slice(0, CONTACT_MESSAGE_MAX) || '',
     page: window.location.href,
     sentAt: new Date().toISOString()
   });
@@ -1777,6 +1841,10 @@
     closeDialog({ afterClose: resetContactFlow });
   });
 
+  contactButton?.addEventListener('pointerdown', () => {
+    if (!contactButton) return;
+    pendingContactOriginRect = snapshotRect(contactButton.getBoundingClientRect());
+  }, { passive: true });
   contactButton?.addEventListener('click', openDialog);
   dialogClose?.addEventListener('click', () => closeDialog({ afterClose: resetContactFlow }));
   dialog?.addEventListener('cancel', (event) => {
