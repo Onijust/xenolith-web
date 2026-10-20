@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Xenolith Website v5.14 — mobile focus-at-section-top + mobile CONTACT spacing fix -->
+<!-- Xenolith Website v5.16 — v5.15 text update + unified footer typography -->
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
@@ -480,6 +480,22 @@
    Mobile v5.9 behavior remains untouched.
    ============================================================ */
 
+/* ============================================================
+   Xenolith v5.16 — footer typography normalization
+   Match footer copy to the Mincho typography used by the site
+   navigation/labels, without changing any layout or behavior.
+   ============================================================ */
+.site-footer {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 11px;
+}
+@media (max-width: 760px) {
+  .site-footer {
+    font-size: 15px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -508,18 +524,18 @@
       <div class="hero-inner">
         <div class="hero-copy" data-hero-copy>
           <h1 id="hero-title">
-            <span class="hero-line"><span>ゲームで、</span></span>
-            <span class="hero-line"><span>まだ見ぬ景色をつくる。</span></span>
+            <span class="hero-line"><span>まだ見ぬ体験を、</span></span>
+            <span class="hero-line"><span>かたちにする。</span></span>
           </h1>
-          <p class="hero-tagline">Ideas from outside the ordinary.</p>
+          <p class="hero-tagline">Ideas beyond boundaries.</p>
         </div>
 </div>
     </section>
     <section class="panel panel-light motion-section" id="about" data-motion-section>
       <div class="panel-copy motion-copy">
         <p class="section-label">ABOUT</p>
-        <h2>異なる経験が、<br />新しい遊びを生み出す。</h2>
-        <p class="body-copy">アーケードゲームの黄金期から、コンシューマー、<br class="desktop-only" />海外での開発現場、モバイルゲーム、そしてインディ開発まで。<br class="desktop-only" />さまざまな時代・文化・技術の交点に立ち、<br class="desktop-only" />遊びの新しい可能性を探し続けています。</p>
+        <h2>異なる経験が、<br />新しい発想を生み出す。</h2>
+        <p class="body-copy">アーケードゲームの黄金期から、海外での開発チーム立ち上げや現地開発を経験し、<br class="desktop-only" />その後もさまざまな分野・プラットフォームでものづくりを続けてきました。<br class="desktop-only" />異なる文化や価値観の中で得た視点を生かし、<br class="desktop-only" />境界にとらわれない発想で新しい体験を探っています。</p>
       </div>
       <div class="panel-media media-right motion-media" aria-label="アーケードゲーム筐体のイメージ" role="img">
         <div class="media-image about-image"></div>
@@ -531,15 +547,15 @@
       </div>
       <div class="panel-copy motion-copy">
         <p class="section-label">WORKS</p>
-        <h2>遊びのかたちを、<br />さまざまなプラットフォームで。</h2>
-        <p class="body-copy">アーケード、コンシューマー、モバイル、ハイパーカジュアル、<br class="desktop-only" />アプリ企画まで。企画・ゲームデザイン・ディレクション・<br class="desktop-only" />プロトタイプ制作を行っています。</p>
+        <h2>発想を、体験へ。<br />体験を、かたちへ。</h2>
+        <p class="body-copy">アイデアの本質を見つめ、体験としてどう届けるかを考える。<br class="desktop-only" />領域やプラットフォームにとらわれず、<br class="desktop-only" />発想を実現可能なかたちへと組み立てていきます。</p>
       </div>
     </section>
     <section class="panel panel-light motion-section" id="projects" data-motion-section>
       <div class="panel-copy motion-copy">
         <p class="section-label">PROJECTS</p>
-        <h2>今、つくっている遊び。</h2>
-        <p class="body-copy">ゲームやアプリの企画・プロトタイプ開発など、<br class="desktop-only" />現在取り組んでいるプロジェクトを紹介します。</p>
+        <h2>現在進行形のプロジェクト。</h2>
+        <p class="body-copy">新しい遊びや体験、サービスの可能性を試しながら、<br class="desktop-only" />現在進めているプロジェクトを紹介します。</p>
       </div>
       <div class="panel-media media-right motion-media" aria-label="海を見下ろす旅の風景" role="img">
         <div class="media-image projects-image"></div>
@@ -551,8 +567,8 @@
       <div class="contact-inner motion-copy">
         <div>
           <p class="section-label section-label-light">CONTACT</p>
-          <h2>一緒に、新しい遊びを。</h2>
-          <p>ゲームの企画・開発・プロトタイプ制作など、お気軽にご相談ください。</p>
+          <h2>次の体験を、一緒につくる。</h2>
+          <p>新しい企画の立ち上げから、アイデアの具現化、<br class="desktop-only" />開発チームディレクション、プロトタイプ制作まで。<br class="desktop-only" />まだ輪郭のない段階からでも、お気軽にご相談ください。</p>
         </div>
         <button class="contact-button magnetic-button" type="button" data-contact>
           <span>CONTACT</span><span class="button-arrow" aria-hidden="true">→</span>
