@@ -1,5 +1,4 @@
 const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
-const TURNSTILE_ACTION = 'contact_send';
 const ALLOWED_HOSTNAMES = new Set(['xenolith.jp', 'www.xenolith.jp']);
 const ALLOWED_SUBJECTS = new Set([
   '事業に関するご相談',
@@ -73,10 +72,6 @@ export async function onRequestPost(context) {
       error: 'turnstile_failed',
       codes: Array.isArray(verify?.['error-codes']) ? verify['error-codes'] : []
     }, 403);
-  }
-
-  if (verify.action !== TURNSTILE_ACTION) {
-    return json({ ok: false, error: 'turnstile_action_mismatch' }, 403);
   }
 
   if (!ALLOWED_HOSTNAMES.has(verify.hostname)) {
