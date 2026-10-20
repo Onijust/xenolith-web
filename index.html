@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Xenolith Website v5.18 — contact confirm flow + responsive modal polish -->
+<!-- Xenolith Website v5.20 — contact dropdown motion matched to mobile navigation -->
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
@@ -942,6 +942,78 @@
   .contact-primary::before { transition-duration: .01ms !important; }
 }
 
+
+/* ============================================================
+   Xenolith v5.20 — CONTACT subject underline choreography matched to mobile navigation
+   ============================================================ */
+/* Reserve the exact same message band in edit/confirm/result states. */
+.contact-form-status,
+.contact-confirm-status {
+  box-sizing: border-box;
+  width: 100%;
+  height: 3.2em;
+  min-height: 3.2em;
+  margin: 0;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  font-family: var(--serif);
+  font-size: 13px;
+  line-height: 1.6;
+  letter-spacing: .04em;
+  text-align: center;
+}
+
+/* BACK fills from right to left before returning to the edit step. */
+.contact-back::before {
+  transform: translateX(102%);
+  transform-origin: right center;
+}
+.contact-back.is-activating::before { transform: translateX(0); }
+.contact-back.is-busy { pointer-events: none; }
+
+/* Selected subject: grow a red rule from left to right under the label,
+   then close the shutter menu. */
+.contact-option-label {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 5px;
+}
+.contact-option-label::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform .24s cubic-bezier(.22,.61,.36,1);
+}
+.contact-select-menu button.is-selecting .contact-option-label::after {
+  transform: scaleX(1);
+}
+.contact-select-menu button.is-selecting {
+  pointer-events: none;
+}
+
+@media (max-width:760px) {
+  .contact-form-status,
+  .contact-confirm-status {
+    height: 3.2em;
+    min-height: 3.2em;
+    font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contact-back::before,
+  .contact-option-label::after { transition-duration: .01ms !important; }
+}
+
 </style>
 </head>
 <body>
@@ -1038,13 +1110,13 @@
             <span class="contact-select-mark" aria-hidden="true"></span>
           </button>
           <div class="contact-select-menu" id="contact-subject-menu" role="listbox" aria-label="お問い合わせ内容">
-            <button type="button" role="option" data-subject-option="事業に関するご相談">事業に関するご相談</button>
-            <button type="button" role="option" data-subject-option="ゲーム開発のご相談">ゲーム開発のご相談</button>
-            <button type="button" role="option" data-subject-option="アプリ開発のご相談">アプリ開発のご相談</button>
-            <button type="button" role="option" data-subject-option="ディレクションのご相談">ディレクションのご相談</button>
-            <button type="button" role="option" data-subject-option="企画立案のご相談">企画立案のご相談</button>
-            <button type="button" role="option" data-subject-option="プロトタイプ開発に関するご相談">プロトタイプ開発に関するご相談</button>
-            <button type="button" role="option" data-subject-option="その他">その他</button>
+            <button type="button" role="option" data-subject-option="事業に関するご相談"><span class="contact-option-label">事業に関するご相談</span></button>
+            <button type="button" role="option" data-subject-option="ゲーム開発のご相談"><span class="contact-option-label">ゲーム開発のご相談</span></button>
+            <button type="button" role="option" data-subject-option="アプリ開発のご相談"><span class="contact-option-label">アプリ開発のご相談</span></button>
+            <button type="button" role="option" data-subject-option="ディレクションのご相談"><span class="contact-option-label">ディレクションのご相談</span></button>
+            <button type="button" role="option" data-subject-option="企画立案のご相談"><span class="contact-option-label">企画立案のご相談</span></button>
+            <button type="button" role="option" data-subject-option="プロトタイプ開発に関するご相談"><span class="contact-option-label">プロトタイプ開発に関するご相談</span></button>
+            <button type="button" role="option" data-subject-option="その他"><span class="contact-option-label">その他</span></button>
           </div>
           <input id="contact-subject" name="subject" type="hidden" value="" />
         </div>
@@ -1341,6 +1413,7 @@
   const contactBack = document.querySelector('.contact-back');
   const contactSend = document.querySelector('.contact-send');
   const dialogClose = document.querySelector('.dialog-close');
+  let subjectSelectionBusy = false;
 
   const wait = (ms) => new Promise(resolve => window.setTimeout(resolve, ms));
 
@@ -1386,13 +1459,23 @@
   });
 
   subjectOptions.forEach((option) => {
-    option.addEventListener('click', () => {
+    option.addEventListener('click', async () => {
+      if (subjectSelectionBusy) return;
+      subjectSelectionBusy = true;
+      subjectOptions.forEach(item => item.classList.remove('is-selecting'));
+      option.classList.add('is-selecting');
+      if (!prefersReduced) await wait(240);
+
       const value = option.dataset.subjectOption || option.textContent.trim();
       if (subjectInput) subjectInput.value = value;
       if (subjectValue) subjectValue.textContent = value;
       subjectOptions.forEach(item => item.setAttribute('aria-selected', item === option ? 'true' : 'false'));
       if (contactStatus) contactStatus.textContent = '';
       setSubjectMenu(false);
+
+      if (!prefersReduced) await wait(120);
+      option.classList.remove('is-selecting');
+      subjectSelectionBusy = false;
     });
   });
 
@@ -1410,7 +1493,8 @@
     contactForm?.reset();
     if (subjectInput) subjectInput.value = '';
     if (subjectValue) subjectValue.textContent = 'お問い合わせ内容';
-    subjectOptions.forEach(item => item.setAttribute('aria-selected', 'false'));
+    subjectOptions.forEach(item => { item.setAttribute('aria-selected', 'false'); item.classList.remove('is-selecting'); });
+    subjectSelectionBusy = false;
     if (messageCount) messageCount.textContent = '0';
     if (contactStatus) contactStatus.textContent = '';
     if (confirmSubject) confirmSubject.textContent = '';
@@ -1419,6 +1503,7 @@
     confirmStep?.classList.remove('is-result');
     contactReview?.classList.remove('is-activating', 'is-busy');
     contactSend?.classList.remove('is-activating', 'is-busy');
+    contactBack?.classList.remove('is-activating', 'is-busy');
     setSubjectMenu(false);
     setContactStep('edit');
   };
@@ -1454,6 +1539,7 @@
       dialog.close();
       contactReview?.classList.remove('is-activating', 'is-busy');
       contactSend?.classList.remove('is-activating', 'is-busy');
+    contactBack?.classList.remove('is-activating', 'is-busy');
       contactButton?.classList.remove('is-modal-open', 'is-activating');
       closingDialog = false;
       if (typeof afterClose === 'function') afterClose();
@@ -1513,11 +1599,14 @@
     setContactStep('confirm');
   });
 
-  contactBack?.addEventListener('click', () => {
-    if (contactSend?.classList.contains('is-busy')) return;
+  contactBack?.addEventListener('click', async () => {
+    if (!contactBack || contactBack.classList.contains('is-busy') || contactSend?.classList.contains('is-busy')) return;
+    contactBack.classList.add('is-activating', 'is-busy');
+    if (!prefersReduced) await wait(420);
     if (confirmStatus) confirmStatus.textContent = 'この内容で送信します、よろしいですか。';
     confirmStep?.classList.remove('is-result');
     setContactStep('edit');
+    contactBack.classList.remove('is-activating', 'is-busy');
   });
 
   contactSend?.addEventListener('click', async () => {
