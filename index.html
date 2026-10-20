@@ -94,7 +94,7 @@
   opacity: 1;
   transform: translate(0,0) scale(1,1);
 }
-/* v5.30: while the dialog is made measurable, suppress all transitions so
+/* v5.31: while the dialog is made measurable, suppress all transitions so
    the browser never paints a first-frame fade from the viewport center. */
 .contact-dialog.is-preparing {
   opacity: 0 !important;
@@ -1565,7 +1565,20 @@
   const setDialogOriginFromButton = (buttonRect = null) => {
     if (!dialog || !contactButton) return;
     const b = buttonRect || contactButton.getBoundingClientRect();
+
+    // v5.31: always measure the dialog in its neutral, full-size position.
+    // The previous implementation measured getBoundingClientRect() while the
+    // dialog was still using the last open/close transform variables, so a
+    // manually scrolled CONTACT button could inherit a stale origin.
+    // During opening the dialog is invisible (.is-preparing), so temporarily
+    // neutralizing these variables cannot flash on screen. While closing,
+    // .is-open already forces translate(0) scale(1), so this is safe there too.
+    dialog.style.setProperty('--dialog-from-x', '0px');
+    dialog.style.setProperty('--dialog-from-y', '0px');
+    dialog.style.setProperty('--dialog-from-scale-x', '1');
+    dialog.style.setProperty('--dialog-from-scale-y', '1');
     const d = dialog.getBoundingClientRect();
+
     const dx = (b.left + b.width / 2) - (d.left + d.width / 2);
     const dy = (b.top + b.height / 2) - (d.top + d.height / 2);
     const sx = clamp(b.width / Math.max(d.width, 1), 0.10, 0.92);
@@ -1841,11 +1854,17 @@
     closeDialog({ afterClose: resetContactFlow });
   });
 
-  contactButton?.addEventListener('pointerdown', () => {
-    if (!contactButton) return;
-    pendingContactOriginRect = snapshotRect(contactButton.getBoundingClientRect());
-  }, { passive: true });
-  contactButton?.addEventListener('click', openDialog);
+  // v5.31: capture the button rectangle at the actual click activation time,
+  // not pointerdown. This is the exact visual position the user clicked, even
+  // after manual scrolling, momentum scrolling, partial clipping, or keyboard
+  // activation. The snapshot is then kept stable during the red-fill delay.
+  contactButton?.addEventListener('click', (event) => {
+    const button = event.currentTarget;
+    if (button instanceof Element) {
+      pendingContactOriginRect = snapshotRect(button.getBoundingClientRect());
+    }
+    openDialog();
+  });
   dialogClose?.addEventListener('click', () => closeDialog({ afterClose: resetContactFlow }));
   dialog?.addEventListener('cancel', (event) => {
     event.preventDefault();
