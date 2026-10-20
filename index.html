@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Xenolith Website v5.20 — contact dropdown motion matched to mobile navigation -->
+<!-- Xenolith Website v5.21 — contact dark-theme visual test -->
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
@@ -1014,6 +1014,86 @@
   .contact-option-label::after { transition-duration: .01ms !important; }
 }
 
+
+
+/* ============================================================
+   Xenolith v5.21 — CONTACT dark-theme visual test
+   Modal-only color experiment. Red accent and all motion remain unchanged.
+   ============================================================ */
+.contact-dialog {
+  background: #161b20;
+  color: #f5f3ef;
+  color-scheme: dark;
+}
+.contact-dialog h2,
+.contact-dialog .section-label,
+.contact-dialog .contact-field-label,
+.contact-dialog .contact-select-value,
+.contact-dialog .contact-confirm-subject,
+.contact-dialog .contact-confirm-message,
+.contact-dialog .dialog-close,
+.contact-dialog .dialog-ok {
+  color: #f5f3ef;
+}
+.contact-dialog .dialog-close {
+  -webkit-tap-highlight-color: transparent;
+}
+.contact-select-trigger,
+.contact-message-field textarea,
+.contact-confirm-block {
+  background: #252b31;
+  color: #f5f3ef;
+  border-color: rgba(255,255,255,.24);
+}
+.contact-select-trigger:hover,
+.contact-select-trigger:focus-visible,
+.contact-message-field textarea:focus {
+  background: #2b3239;
+  border-color: rgba(255,255,255,.58);
+  box-shadow: 0 8px 24px rgba(0,0,0,.22);
+}
+.contact-message-field textarea {
+  caret-color: #f5f3ef;
+}
+.contact-message-field textarea::placeholder {
+  color: rgba(245,243,239,.42);
+}
+.contact-message-meta,
+.contact-confirm-label {
+  color: rgba(245,243,239,.55);
+}
+.contact-select-menu {
+  background: #20262c;
+}
+.contact-subject-field.is-open .contact-select-menu {
+  border-color: rgba(255,255,255,.18);
+}
+.contact-select-menu button {
+  color: #f5f3ef;
+  border-top-color: rgba(255,255,255,.10);
+}
+.contact-select-menu button:hover,
+.contact-select-menu button:focus-visible {
+  background: rgba(239,28,37,.10);
+  color: #fff;
+}
+.contact-confirm-block {
+  border-color: rgba(255,255,255,.20);
+}
+.contact-dialog .dialog-ok {
+  background: #20262c;
+  border-color: rgba(255,255,255,.58);
+}
+.contact-dialog .dialog-ok.is-activating {
+  color: #fff;
+  border-color: var(--accent);
+}
+/* Validation / confirmation / delivery messages intentionally keep the Xenolith red. */
+.contact-form-status,
+.contact-confirm-status {
+  color: var(--accent);
+}
+
 </style>
 </head>
 <body>
@@ -1115,7 +1195,7 @@
             <button type="button" role="option" data-subject-option="アプリ開発のご相談"><span class="contact-option-label">アプリ開発のご相談</span></button>
             <button type="button" role="option" data-subject-option="ディレクションのご相談"><span class="contact-option-label">ディレクションのご相談</span></button>
             <button type="button" role="option" data-subject-option="企画立案のご相談"><span class="contact-option-label">企画立案のご相談</span></button>
-            <button type="button" role="option" data-subject-option="プロトタイプ開発に関するご相談"><span class="contact-option-label">プロトタイプ開発に関するご相談</span></button>
+            <button type="button" role="option" data-subject-option="プロトタイプ開発のご相談"><span class="contact-option-label">プロトタイプ開発のご相談</span></button>
             <button type="button" role="option" data-subject-option="その他"><span class="contact-option-label">その他</span></button>
           </div>
           <input id="contact-subject" name="subject" type="hidden" value="" />
