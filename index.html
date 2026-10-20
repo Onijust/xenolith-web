@@ -1014,7 +1014,36 @@
   .contact-option-label::after { transition-duration: .01ms !important; }
 }
 
+
+
+/* ============================================================
+   Xenolith v5.23 — Cloudflare Turnstile integration
+   Managed + interaction-only: the widget stays visually quiet unless
+   Cloudflare decides that visitor interaction is required.
+   ============================================================ */
+.contact-turnstile-shell {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+  overflow: visible;
+}
+#contact-turnstile {
+  width: min(100%, 320px);
+  display: flex;
+  justify-content: center;
+}
+#contact-turnstile iframe {
+  max-width: 100%;
+}
+@media (max-width:760px) {
+  #contact-turnstile { width: min(100%, 300px); }
+}
+
 </style>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">本文へ移動</a>
@@ -1138,6 +1167,9 @@
           <div class="contact-confirm-block contact-confirm-message-block">
             <p class="contact-confirm-label">メッセージ</p>
             <div class="contact-confirm-message" data-confirm-message></div>
+          </div>
+          <div class="contact-turnstile-shell" data-turnstile-shell aria-live="polite">
+            <div id="contact-turnstile"></div>
           </div>
         </div>
         <p class="contact-confirm-status" data-confirm-status aria-live="polite">この内容で送信します、よろしいですか。</p>
@@ -1392,8 +1424,9 @@
   // v5.18 adds an edit -> confirm -> send flow while delivery remains preview-only.
   const CONTACT_CONFIG = Object.freeze({
     endpoint: '/api/contact',
-    deliveryEnabled: false,
-    recipientPlaceholder: 'xxx@xxx.jp'
+    deliveryEnabled: true,
+    turnstileSitekey: '0x4AAAAAAAFcZhSgkxJrymrO-',
+    turnstileAction: 'contact_send'
   });
   const contactForm = document.getElementById('contact-form');
   const subjectField = document.querySelector('.contact-subject-field');
@@ -1413,9 +1446,103 @@
   const contactBack = document.querySelector('.contact-back');
   const contactSend = document.querySelector('.contact-send');
   const dialogClose = document.querySelector('.dialog-close');
+  const turnstileContainer = document.getElementById('contact-turnstile');
+  const turnstileShell = document.querySelector('[data-turnstile-shell]');
   let subjectSelectionBusy = false;
+  let turnstileWidgetId = null;
+  let turnstileToken = '';
+  let turnstilePendingResolve = null;
+  let turnstilePendingReject = null;
+  let turnstilePendingTimer = 0;
 
   const wait = (ms) => new Promise(resolve => window.setTimeout(resolve, ms));
+
+  const settleTurnstilePending = (error = null, token = '') => {
+    if (turnstilePendingTimer) {
+      window.clearTimeout(turnstilePendingTimer);
+      turnstilePendingTimer = 0;
+    }
+    const resolve = turnstilePendingResolve;
+    const reject = turnstilePendingReject;
+    turnstilePendingResolve = null;
+    turnstilePendingReject = null;
+    if (error) reject?.(error);
+    else resolve?.(token);
+  };
+
+  const waitForTurnstileApi = async () => {
+    for (let i = 0; i < 80; i += 1) {
+      if (window.turnstile?.render) return window.turnstile;
+      await wait(100);
+    }
+    throw new Error('Turnstile API did not load.');
+  };
+
+  const ensureTurnstileWidget = async () => {
+    if (turnstileWidgetId !== null) return turnstileWidgetId;
+    if (!turnstileContainer) throw new Error('Turnstile container is missing.');
+    const api = await waitForTurnstileApi();
+    turnstileWidgetId = api.render(turnstileContainer, {
+      sitekey: CONTACT_CONFIG.turnstileSitekey,
+      theme: 'light',
+      size: 'flexible',
+      appearance: 'interaction-only',
+      execution: 'execute',
+      action: CONTACT_CONFIG.turnstileAction,
+      callback: (token) => {
+        turnstileToken = token || '';
+        settleTurnstilePending(null, turnstileToken);
+      },
+      'expired-callback': () => {
+        turnstileToken = '';
+      },
+      'timeout-callback': () => {
+        turnstileToken = '';
+        settleTurnstilePending(new Error('Turnstile challenge timed out.'));
+      },
+      'error-callback': () => {
+        turnstileToken = '';
+        settleTurnstilePending(new Error('Turnstile verification failed.'));
+      }
+    });
+    return turnstileWidgetId;
+  };
+
+  const resetTurnstile = () => {
+    turnstileToken = '';
+    if (turnstilePendingReject) {
+      settleTurnstilePending(new Error('Turnstile verification was cancelled.'));
+    }
+    if (turnstileWidgetId !== null && window.turnstile?.reset) {
+      try { window.turnstile.reset(turnstileWidgetId); } catch (_) {}
+    }
+  };
+
+  const requestTurnstileToken = async () => {
+    if (turnstileToken) return turnstileToken;
+    const widgetId = await ensureTurnstileWidget();
+    if (turnstilePendingResolve) throw new Error('Turnstile verification is already running.');
+
+    return new Promise((resolve, reject) => {
+      turnstilePendingResolve = resolve;
+      turnstilePendingReject = reject;
+      turnstilePendingTimer = window.setTimeout(() => {
+        turnstileToken = '';
+        settleTurnstilePending(new Error('Turnstile verification timed out.'));
+      }, 30000);
+
+      turnstileShell?.scrollIntoView({
+        behavior: prefersReduced ? 'auto' : 'smooth',
+        block: 'nearest'
+      });
+
+      try {
+        window.turnstile.execute(widgetId);
+      } catch (error) {
+        settleTurnstilePending(error instanceof Error ? error : new Error('Turnstile could not start.'));
+      }
+    });
+  };
 
   const setDialogOriginFromButton = () => {
     if (!dialog || !contactButton) return;
@@ -1505,6 +1632,7 @@
     contactSend?.classList.remove('is-activating', 'is-busy');
     contactBack?.classList.remove('is-activating', 'is-busy');
     setSubjectMenu(false);
+    resetTurnstile();
     setContactStep('edit');
   };
 
@@ -1521,6 +1649,7 @@
         contactButton.classList.remove('is-activating');
         contactButton.classList.add('is-modal-open');
         requestAnimationFrame(() => dialog.classList.add('is-open'));
+        ensureTurnstileWidget().catch((error) => console.warn('[Xenolith Turnstile]', error));
       });
     }, fillDelay);
   };
@@ -1555,22 +1684,31 @@
     sentAt: new Date().toISOString()
   });
 
-  const deliverContact = async (payload) => {
-    if (!CONTACT_CONFIG.deliveryEnabled) {
-      console.info('[Xenolith CONTACT preview]', {
-        ...payload,
-        recipientPlaceholder: CONTACT_CONFIG.recipientPlaceholder
-      });
-      return { ok: true, preview: true };
-    }
+  const deliverContact = async (payload, verificationToken) => {
+    if (!CONTACT_CONFIG.deliveryEnabled) return { ok: true, preview: true };
+    if (!verificationToken) throw new Error('Turnstile token is missing.');
 
     const response = await fetch(CONTACT_CONFIG.endpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        ...payload,
+        turnstileToken: verificationToken
+      })
     });
-    if (!response.ok) throw new Error(`Contact delivery failed: ${response.status}`);
-    return response.json().catch(() => ({ ok: true }));
+
+    const data = await response.json().catch(() => ({}));
+    turnstileToken = '';
+    if (turnstileWidgetId !== null && window.turnstile?.reset) {
+      try { window.turnstile.reset(turnstileWidgetId); } catch (_) {}
+    }
+    if (!response.ok || data.ok !== true) {
+      throw new Error(data.error || `Contact delivery failed: ${response.status}`);
+    }
+    return data;
   };
 
   contactForm?.addEventListener('submit', async (event) => {
@@ -1617,13 +1755,18 @@
     confirmStep?.classList.add('is-result');
 
     const fill = prefersReduced ? Promise.resolve() : wait(420);
-    let success = false;
     try {
-      await Promise.all([fill, deliverContact(payload)]);
-      success = true;
-      if (confirmStatus) confirmStatus.textContent = '送信しました';
+      if (confirmStatus) confirmStatus.textContent = 'セキュリティ確認中です。';
+      const verificationToken = await requestTurnstileToken();
+      const result = await deliverContact(payload, verificationToken);
+      await fill;
+      if (confirmStatus) {
+        confirmStatus.textContent = result.preview ? '送信テストが完了しました' : '送信しました';
+      }
     } catch (error) {
       console.error(error);
+      resetTurnstile();
+      await fill;
       if (confirmStatus) confirmStatus.textContent = '通信トラブルにより送信できませんでした。お手数ですが、時間をおいて再度送信ください';
     }
 
