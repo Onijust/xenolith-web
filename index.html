@@ -2038,13 +2038,13 @@
       const result = await deliverContact(payload, verificationToken);
       await fill;
       if (confirmStatus) {
-        confirmStatus.textContent = '送信しました';
+        confirmStatus.textContent = '送信しました。';
       }
     } catch (error) {
       console.error(error);
       resetTurnstile();
       await fill;
-      if (confirmStatus) confirmStatus.textContent = '通信トラブルにより送信できませんでした。お手数ですが、時間をおいて再度送信ください';
+      if (confirmStatus) confirmStatus.textContent = '通信トラブルにより送信できませんでした。お手数ですが、時間をおいて再度送信ください。';
     }
 
     await wait(prefersReduced ? 0 : 2000);
