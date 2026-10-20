@@ -1017,9 +1017,9 @@
 
 
 /* ============================================================
-   Xenolith v5.26 — Cloudflare Turnstile minimal integration
-   Managed widget using the same minimal configuration that passed
-   the standalone diagnostic page. Extra appearance/action options are omitted.
+   Xenolith v5.27 — Cloudflare Turnstile unobtrusive integration
+   Managed widget with interaction-only appearance so the Cloudflare panel stays hidden
+   for ordinary visitors and appears only if Cloudflare requires user interaction.
    ============================================================ */
 .contact-turnstile-shell {
   flex: 0 0 auto;
@@ -1477,9 +1477,9 @@
     throw new Error('Turnstile API did not load.');
   };
 
-  // v5.26: use the same minimal widget configuration that succeeded on
-  // turnstile-test.html. The widget is rendered only after the confirmation
-  // panel becomes visible, but no appearance/action/execution overrides are used.
+  // v5.27: keep Managed verification, but hide the Turnstile panel during
+  // ordinary passive checks. Cloudflare may still show an interactive challenge
+  // when it decides visitor interaction is actually required.
   const ensureTurnstileWidget = async () => {
     if (turnstileWidgetId !== null) return turnstileWidgetId;
     if (!turnstileContainer) throw new Error('Turnstile container is missing.');
@@ -1487,6 +1487,7 @@
     turnstileWidgetId = api.render(turnstileContainer, {
       sitekey: CONTACT_CONFIG.turnstileSitekey,
       theme: 'light',
+      appearance: 'interaction-only',
       callback: (token) => {
         turnstileToken = token || '';
         settleTurnstilePending(null, turnstileToken);
@@ -1513,9 +1514,15 @@
     if (turnstilePendingReject) {
       settleTurnstilePending(new Error('Turnstile verification was cancelled.'));
     }
-    if (turnstileWidgetId !== null && window.turnstile?.reset) {
-      try { window.turnstile.reset(turnstileWidgetId); } catch (_) {}
+    // Remove the widget instead of resetting it. A reset immediately starts a
+    // new verification cycle and can flash the Cloudflare panel just before the
+    // modal closes. A fresh widget is created the next time it is needed.
+    if (turnstileWidgetId !== null && window.turnstile?.remove) {
+      try { window.turnstile.remove(turnstileWidgetId); } catch (_) {}
+    } else if (turnstileContainer) {
+      turnstileContainer.replaceChildren();
     }
+    turnstileWidgetId = null;
   };
 
   const requestTurnstileToken = async () => {
@@ -1693,10 +1700,10 @@
     });
 
     const data = await response.json().catch(() => ({}));
+    // The token is single-use. Do not reset the widget here: resetting would
+    // immediately launch another verification and briefly show the Cloudflare
+    // panel while the result message is on screen. Cleanup happens after close.
     turnstileToken = '';
-    if (turnstileWidgetId !== null && window.turnstile?.reset) {
-      try { window.turnstile.reset(turnstileWidgetId); } catch (_) {}
-    }
     if (!response.ok || data.ok !== true) {
       throw new Error(data.error || `Contact delivery failed: ${response.status}`);
     }
@@ -1756,7 +1763,7 @@
       const result = await deliverContact(payload, verificationToken);
       await fill;
       if (confirmStatus) {
-        confirmStatus.textContent = result.preview ? '送信テストが完了しました' : '送信しました';
+        confirmStatus.textContent = '送信しました';
       }
     } catch (error) {
       console.error(error);
