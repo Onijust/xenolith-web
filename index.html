@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Xenolith Website v5.17 — contact form preview + backend-ready delivery hook -->
+<!-- Xenolith Website v5.18 — contact confirm flow + responsive modal polish -->
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
@@ -743,6 +743,205 @@
   .contact-submit::before { transition-duration: .01ms !important; }
 }
 
+
+/* ============================================================
+   Xenolith v5.18 — CONTACT confirmation flow / mobile fit polish
+   ============================================================ */
+.contact-dialog[open] {
+  display: flex;
+  flex-direction: column;
+  height: min(84dvh, 780px);
+  overflow: hidden;
+}
+.contact-dialog:focus,
+.dialog-close:focus,
+.dialog-close:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.dialog-close {
+  -webkit-tap-highlight-color: transparent;
+}
+.contact-flow {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.contact-step {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity .24s ease, transform .34s var(--ease-out), visibility 0s linear .34s;
+}
+.contact-step.is-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+  transition: opacity .24s ease, transform .34s var(--ease-out), visibility 0s linear 0s;
+}
+.contact-form {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+.contact-message-field {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+.contact-message-field textarea {
+  flex: 1 1 auto;
+  min-height: 130px;
+  max-height: none;
+  resize: none;
+}
+.contact-review {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+.contact-primary::before {
+  transform: translateX(-102%);
+  transform-origin: left center;
+}
+.contact-primary.is-activating::before {
+  transform: translateX(0);
+}
+.contact-review.is-busy,
+.contact-send.is-busy {
+  pointer-events: none;
+}
+.contact-confirm {
+  gap: 16px;
+}
+.contact-confirm-scroll {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding-right: 2px;
+}
+.contact-confirm-block {
+  border: 1px solid rgba(28,32,35,.22);
+  background: rgba(255,255,255,.62);
+  padding: 16px 18px;
+}
+.contact-confirm-label {
+  margin: 0 0 10px;
+  color: rgba(28,32,35,.58);
+  font-family: var(--serif);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: .10em;
+}
+.contact-confirm-subject {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 15px;
+  line-height: 1.7;
+  letter-spacing: .04em;
+}
+.contact-confirm-message-block {
+  flex: 1 0 auto;
+}
+.contact-confirm-message {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: var(--serif);
+  font-size: 15px;
+  line-height: 1.85;
+  letter-spacing: .035em;
+}
+.contact-confirm-status {
+  flex: 0 0 auto;
+  min-height: 1.6em;
+  margin: 0;
+  color: var(--accent);
+  font-family: var(--serif);
+  font-size: 13px;
+  line-height: 1.6;
+  letter-spacing: .04em;
+  text-align: center;
+}
+.contact-confirm-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+.contact-confirm-actions .dialog-ok {
+  width: min(240px, calc(50% - 10px));
+  min-width: 0;
+  margin: 0;
+}
+.contact-confirm.is-result .contact-confirm-actions {
+  pointer-events: none;
+}
+@media (max-width:760px) {
+  .contact-dialog[open] {
+    width: calc(100vw - 28px);
+    height: calc(100vh - 28px);
+    height: calc(100dvh - 28px);
+    max-height: calc(100vh - 28px);
+    max-height: calc(100dvh - 28px);
+    padding: 42px 22px 20px;
+  }
+  .contact-flow { min-height: 0; }
+  .contact-form { gap: 16px; }
+  .contact-message-field textarea {
+    min-height: 92px;
+    max-height: none;
+    height: auto;
+  }
+  .contact-review {
+    width: min(78%, 270px);
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+  .contact-confirm { gap: 14px; }
+  .contact-confirm-scroll { gap: 12px; }
+  .contact-confirm-block { padding: 14px 15px; }
+  .contact-confirm-label { font-size: 11px; }
+  .contact-confirm-subject,
+  .contact-confirm-message {
+    font-size: 14px;
+    line-height: 1.72;
+  }
+  .contact-confirm-status { font-size: 12px; }
+  .contact-confirm-actions { gap: 12px; }
+  .contact-confirm-actions .dialog-ok {
+    width: calc(50% - 6px);
+    height: 54px;
+    font-size: clamp(15px, 4.1vw, 18px) !important;
+    letter-spacing: .10em !important;
+  }
+}
+@media (max-width:760px) and (max-height:680px) {
+  .contact-dialog[open] {
+    padding-top: 34px;
+    padding-bottom: 16px;
+  }
+  .contact-dialog .section-label { margin-bottom: 18px; }
+  .contact-dialog h2 { margin-bottom: 16px; }
+  .contact-form { gap: 12px; }
+  .contact-message-field textarea { min-height: 72px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .contact-step,
+  .contact-primary::before { transition-duration: .01ms !important; }
+}
+
 </style>
 </head>
 <body>
@@ -827,35 +1026,55 @@
     <span>© <span id="year"></span> Xenolith</span>
     <a class="footer-top" href="#home"><span>BACK TO TOP</span><span aria-hidden="true">↑</span></a>
   </footer>
-  <dialog class="contact-dialog" id="contact-dialog">
+  <dialog class="contact-dialog" id="contact-dialog" tabindex="-1" autofocus>
     <button class="dialog-close" type="button" aria-label="閉じる">×</button>
     <p class="section-label">CONTACT</p>
     <h2>お問い合わせ</h2>
-    <form class="contact-form" id="contact-form" novalidate>
-      <div class="contact-field contact-subject-field">
-        <button class="contact-select-trigger" id="contact-subject-trigger" type="button" aria-expanded="false" aria-controls="contact-subject-menu">
-          <span class="contact-select-value" data-subject-value>お問い合わせ内容</span>
-          <span class="contact-select-mark" aria-hidden="true"></span>
-        </button>
-        <div class="contact-select-menu" id="contact-subject-menu" role="listbox" aria-label="お問い合わせ内容">
-          <button type="button" role="option" data-subject-option="事業に関するご相談">事業に関するご相談</button>
-          <button type="button" role="option" data-subject-option="ゲーム開発のご相談">ゲーム開発のご相談</button>
-          <button type="button" role="option" data-subject-option="アプリ開発のご相談">アプリ開発のご相談</button>
-          <button type="button" role="option" data-subject-option="ディレクションのご相談">ディレクションのご相談</button>
-          <button type="button" role="option" data-subject-option="企画立案のご相談">企画立案のご相談</button>
-          <button type="button" role="option" data-subject-option="プロトタイプ開発に関するご相談">プロトタイプ開発に関するご相談</button>
-          <button type="button" role="option" data-subject-option="その他">その他</button>
+    <div class="contact-flow">
+      <form class="contact-form contact-step is-active" id="contact-form" data-contact-step="edit" aria-hidden="false" novalidate>
+        <div class="contact-field contact-subject-field">
+          <button class="contact-select-trigger" id="contact-subject-trigger" type="button" aria-expanded="false" aria-controls="contact-subject-menu">
+            <span class="contact-select-value" data-subject-value>お問い合わせ内容</span>
+            <span class="contact-select-mark" aria-hidden="true"></span>
+          </button>
+          <div class="contact-select-menu" id="contact-subject-menu" role="listbox" aria-label="お問い合わせ内容">
+            <button type="button" role="option" data-subject-option="事業に関するご相談">事業に関するご相談</button>
+            <button type="button" role="option" data-subject-option="ゲーム開発のご相談">ゲーム開発のご相談</button>
+            <button type="button" role="option" data-subject-option="アプリ開発のご相談">アプリ開発のご相談</button>
+            <button type="button" role="option" data-subject-option="ディレクションのご相談">ディレクションのご相談</button>
+            <button type="button" role="option" data-subject-option="企画立案のご相談">企画立案のご相談</button>
+            <button type="button" role="option" data-subject-option="プロトタイプ開発に関するご相談">プロトタイプ開発に関するご相談</button>
+            <button type="button" role="option" data-subject-option="その他">その他</button>
+          </div>
+          <input id="contact-subject" name="subject" type="hidden" value="" />
         </div>
-        <input id="contact-subject" name="subject" type="hidden" value="" />
-      </div>
-      <div class="contact-field contact-message-field">
-        <label class="contact-field-label" for="contact-message">メッセージ</label>
-        <textarea id="contact-message" name="message" maxlength="2048" rows="8" placeholder="お問い合わせ内容をご入力ください"></textarea>
-        <div class="contact-message-meta"><span data-contact-count>0</span><span> / 2048</span></div>
-      </div>
-      <p class="contact-form-status" data-contact-status aria-live="polite"></p>
-      <button class="dialog-ok contact-submit" type="submit">送信</button>
-    </form>
+        <div class="contact-field contact-message-field">
+          <label class="contact-field-label" for="contact-message">メッセージ</label>
+          <textarea id="contact-message" name="message" maxlength="2048" rows="8" placeholder="お問い合わせ内容をご入力ください"></textarea>
+          <div class="contact-message-meta"><span data-contact-count>0</span><span> / 2048</span></div>
+        </div>
+        <p class="contact-form-status" data-contact-status aria-live="polite"></p>
+        <button class="dialog-ok contact-review contact-primary" type="submit">内容の確認</button>
+      </form>
+
+      <section class="contact-confirm contact-step" data-contact-step="confirm" aria-hidden="true" inert>
+        <div class="contact-confirm-scroll">
+          <div class="contact-confirm-block contact-confirm-subject-block">
+            <p class="contact-confirm-label">お問い合わせ内容</p>
+            <p class="contact-confirm-subject" data-confirm-subject></p>
+          </div>
+          <div class="contact-confirm-block contact-confirm-message-block">
+            <p class="contact-confirm-label">メッセージ</p>
+            <div class="contact-confirm-message" data-confirm-message></div>
+          </div>
+        </div>
+        <p class="contact-confirm-status" data-confirm-status aria-live="polite">この内容で送信します、よろしいですか。</p>
+        <div class="contact-confirm-actions">
+          <button class="dialog-ok contact-back" type="button">もどる</button>
+          <button class="dialog-ok contact-send contact-primary" type="button">送信</button>
+        </div>
+      </section>
+    </div>
   </dialog>
   <script>
 
@@ -1098,7 +1317,7 @@
   onScroll();
 
   // CONTACT button -> red fill -> modal grows from the button.
-  // v5.17 keeps the delivery hook backend-ready while actual delivery stays disabled.
+  // v5.18 adds an edit -> confirm -> send flow while delivery remains preview-only.
   const CONTACT_CONFIG = Object.freeze({
     endpoint: '/api/contact',
     deliveryEnabled: false,
@@ -1107,22 +1326,27 @@
   const contactForm = document.getElementById('contact-form');
   const subjectField = document.querySelector('.contact-subject-field');
   const subjectTrigger = document.getElementById('contact-subject-trigger');
-  const subjectMenu = document.getElementById('contact-subject-menu');
   const subjectInput = document.getElementById('contact-subject');
   const subjectValue = document.querySelector('[data-subject-value]');
   const subjectOptions = [...document.querySelectorAll('[data-subject-option]')];
   const messageInput = document.getElementById('contact-message');
   const messageCount = document.querySelector('[data-contact-count]');
   const contactStatus = document.querySelector('[data-contact-status]');
-  const dialogSubmit = document.querySelector('.contact-submit');
+  const editStep = document.querySelector('[data-contact-step="edit"]');
+  const confirmStep = document.querySelector('[data-contact-step="confirm"]');
+  const confirmSubject = document.querySelector('[data-confirm-subject]');
+  const confirmMessage = document.querySelector('[data-confirm-message]');
+  const confirmStatus = document.querySelector('[data-confirm-status]');
+  const contactReview = document.querySelector('.contact-review');
+  const contactBack = document.querySelector('.contact-back');
+  const contactSend = document.querySelector('.contact-send');
+  const dialogClose = document.querySelector('.dialog-close');
 
   const wait = (ms) => new Promise(resolve => window.setTimeout(resolve, ms));
 
   const setDialogOriginFromButton = () => {
     if (!dialog || !contactButton) return;
     const b = contactButton.getBoundingClientRect();
-    // The dialog's live final dimensions are measured after showModal(), so the
-    // existing button-to-dialog zoom automatically adapts to the larger form.
     const d = dialog.getBoundingClientRect();
     const dx = (b.left + b.width / 2) - (d.left + d.width / 2);
     const dy = (b.top + b.height / 2) - (d.top + d.height / 2);
@@ -1138,6 +1362,23 @@
     if (!subjectField || !subjectTrigger) return;
     subjectField.classList.toggle('is-open', open);
     subjectTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+  };
+
+  const setContactStep = (step) => {
+    const confirm = step === 'confirm';
+    editStep?.classList.toggle('is-active', !confirm);
+    confirmStep?.classList.toggle('is-active', confirm);
+    editStep?.setAttribute('aria-hidden', confirm ? 'true' : 'false');
+    confirmStep?.setAttribute('aria-hidden', confirm ? 'false' : 'true');
+    if (editStep) editStep.toggleAttribute('inert', confirm);
+    if (confirmStep) confirmStep.toggleAttribute('inert', !confirm);
+  };
+
+  const populateConfirmation = (payload) => {
+    if (confirmSubject) confirmSubject.textContent = payload.subject;
+    if (confirmMessage) confirmMessage.textContent = payload.message;
+    if (confirmStatus) confirmStatus.textContent = 'この内容で送信します、よろしいですか。';
+    confirmStep?.classList.remove('is-result');
   };
 
   subjectTrigger?.addEventListener('click', () => {
@@ -1165,14 +1406,21 @@
     if (contactStatus) contactStatus.textContent = '';
   });
 
-  const resetContactForm = () => {
+  const resetContactFlow = () => {
     contactForm?.reset();
     if (subjectInput) subjectInput.value = '';
     if (subjectValue) subjectValue.textContent = 'お問い合わせ内容';
     subjectOptions.forEach(item => item.setAttribute('aria-selected', 'false'));
     if (messageCount) messageCount.textContent = '0';
     if (contactStatus) contactStatus.textContent = '';
+    if (confirmSubject) confirmSubject.textContent = '';
+    if (confirmMessage) confirmMessage.textContent = '';
+    if (confirmStatus) confirmStatus.textContent = 'この内容で送信します、よろしいですか。';
+    confirmStep?.classList.remove('is-result');
+    contactReview?.classList.remove('is-activating', 'is-busy');
+    contactSend?.classList.remove('is-activating', 'is-busy');
     setSubjectMenu(false);
+    setContactStep('edit');
   };
 
   const openDialog = () => {
@@ -1181,8 +1429,8 @@
     const fillDelay = prefersReduced ? 0 : 360;
     window.setTimeout(() => {
       dialog.showModal();
+      dialog.focus({ preventScroll: true });
       dialog.classList.remove('is-closing');
-      // Measure on the next frame to make sure the final, larger dialog box is laid out.
       requestAnimationFrame(() => {
         setDialogOriginFromButton();
         contactButton.classList.remove('is-activating');
@@ -1204,7 +1452,8 @@
     const finish = () => {
       dialog.classList.remove('is-closing');
       dialog.close();
-      dialogSubmit?.classList.remove('is-activating', 'is-sending');
+      contactReview?.classList.remove('is-activating', 'is-busy');
+      contactSend?.classList.remove('is-activating', 'is-busy');
       contactButton?.classList.remove('is-modal-open', 'is-activating');
       closingDialog = false;
       if (typeof afterClose === 'function') afterClose();
@@ -1222,8 +1471,6 @@
 
   const deliverContact = async (payload) => {
     if (!CONTACT_CONFIG.deliveryEnabled) {
-      // Preview mode: keep the final recipient out of the UI. The real address
-      // will later live only in Cloudflare's server-side environment/secret.
       console.info('[Xenolith CONTACT preview]', {
         ...payload,
         recipientPlaceholder: CONTACT_CONFIG.recipientPlaceholder
@@ -1242,7 +1489,7 @@
 
   contactForm?.addEventListener('submit', async (event) => {
     event.preventDefault();
-    if (!dialogSubmit || dialogSubmit.classList.contains('is-sending')) return;
+    if (!contactReview || contactReview.classList.contains('is-busy')) return;
 
     const payload = buildContactPayload();
     if (!payload.subject) {
@@ -1257,35 +1504,55 @@
       return;
     }
 
-    dialogSubmit.classList.add('is-activating', 'is-sending');
+    contactReview.classList.add('is-activating', 'is-busy');
     if (contactStatus) contactStatus.textContent = '';
-    const fill = prefersReduced ? Promise.resolve() : wait(420);
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    if (!prefersReduced) await wait(420);
+    populateConfirmation(payload);
+    contactReview.classList.remove('is-activating', 'is-busy');
+    setContactStep('confirm');
+  });
 
+  contactBack?.addEventListener('click', () => {
+    if (contactSend?.classList.contains('is-busy')) return;
+    if (confirmStatus) confirmStatus.textContent = 'この内容で送信します、よろしいですか。';
+    confirmStep?.classList.remove('is-result');
+    setContactStep('edit');
+  });
+
+  contactSend?.addEventListener('click', async () => {
+    if (!contactSend || contactSend.classList.contains('is-busy')) return;
+    const payload = buildContactPayload();
+    contactSend.classList.add('is-activating', 'is-busy');
+    contactBack?.setAttribute('disabled', '');
+    confirmStep?.classList.add('is-result');
+
+    const fill = prefersReduced ? Promise.resolve() : wait(420);
+    let success = false;
     try {
-      const [, result] = await Promise.all([fill, deliverContact(payload)]);
-      closeDialog({ afterClose: resetContactForm });
+      await Promise.all([fill, deliverContact(payload)]);
+      success = true;
+      if (confirmStatus) confirmStatus.textContent = '送信しました';
     } catch (error) {
       console.error(error);
-      dialogSubmit.classList.remove('is-activating', 'is-sending');
-      if (contactStatus) contactStatus.textContent = '送信できませんでした。時間をおいて再度お試しください。';
+      if (confirmStatus) confirmStatus.textContent = '通信トラブルにより送信できませんでした。お手数ですが、時間をおいて再度送信ください';
     }
+
+    await wait(prefersReduced ? 0 : 2000);
+    contactBack?.removeAttribute('disabled');
+    closeDialog({ afterClose: resetContactFlow });
   });
 
   contactButton?.addEventListener('click', openDialog);
-  document.querySelector('.dialog-close')?.addEventListener('click', () => closeDialog());
+  dialogClose?.addEventListener('click', () => closeDialog({ afterClose: resetContactFlow }));
   dialog?.addEventListener('cancel', (event) => {
     event.preventDefault();
-    if (subjectField?.classList.contains('is-open')) {
-      setSubjectMenu(false);
-      return;
-    }
-    closeDialog();
+    if (subjectField?.classList.contains('is-open')) setSubjectMenu(false);
+    // Form data is intentionally discarded only through the visible X button.
   });
   dialog?.addEventListener('click', (event) => {
-    const rect = dialog.getBoundingClientRect();
-    const outside = event.clientX < rect.left || event.clientX > rect.right ||
-                    event.clientY < rect.top || event.clientY > rect.bottom;
-    if (outside) closeDialog();
+    // Backdrop clicks do not discard entered data; use the visible X button instead.
+    if (event.target === dialog) return;
   });
   window.addEventListener('resize', () => {
     if (dialog?.open) setDialogOriginFromButton();
