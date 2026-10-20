@@ -1054,6 +1054,167 @@
   #contact-turnstile { width: min(100%, 300px); }
 }
 
+
+
+/* ============================================================
+   Xenolith v5.33 — CONTACT email field + compact edit/confirm layout
+   Adds a reply address without sacrificing more message height than necessary.
+   ============================================================ */
+.contact-dialog {
+  padding: 42px 42px 28px;
+}
+.contact-dialog .section-label { margin-bottom: 20px; }
+.contact-dialog h2 { margin-bottom: 16px; }
+.contact-form { gap: 12px; }
+.contact-select-trigger { min-height: 52px; }
+.contact-email-input {
+  display: block;
+  width: 100%;
+  height: 52px;
+  min-height: 52px;
+  padding: 0 18px;
+  border: 1px solid rgba(28,32,35,.28);
+  border-radius: 0;
+  background: rgba(255,255,255,.72);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: .035em;
+  outline: none;
+  transition: border-color .28s ease, background .28s ease, box-shadow .28s ease;
+}
+.contact-email-input::placeholder { color: rgba(28,32,35,.45); opacity: 1; }
+.contact-email-input:focus {
+  border-color: rgba(28,32,35,.70);
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(8,16,24,.07);
+}
+.contact-message-field .contact-field-label { margin-bottom: 7px; }
+.contact-message-field textarea {
+  min-height: 118px;
+  padding: 14px 16px;
+}
+.contact-message-meta { margin-top: 5px; }
+.contact-form-status {
+  height: 2.45em;
+  min-height: 2.45em;
+}
+.contact-confirm { gap: 12px; }
+.contact-confirm-scroll { gap: 10px; }
+.contact-confirm-block { padding: 10px 14px; }
+.contact-confirm-label {
+  margin-bottom: 4px;
+  font-size: 10px;
+  line-height: 1.35;
+}
+.contact-confirm-subject,
+.contact-confirm-email {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-family: var(--serif);
+  font-size: 14px;
+  line-height: 1.55;
+  letter-spacing: .035em;
+}
+.contact-confirm-message-block {
+  flex: 1 0 auto;
+  min-height: 118px;
+}
+.contact-confirm-message {
+  font-size: 14px;
+  line-height: 1.72;
+}
+
+@media (max-width:760px) {
+  .contact-dialog[open] {
+    padding: 36px 18px 16px;
+  }
+  .contact-dialog .section-label { margin-bottom: 18px; }
+  .contact-dialog h2 { margin-bottom: 13px; }
+  .contact-form { gap: 9px; }
+  .contact-select-trigger {
+    min-height: 48px;
+    padding: 0 14px;
+  }
+  .contact-email-input {
+    height: 48px;
+    min-height: 48px;
+    padding: 0 14px;
+    font-size: 16px; /* prevents unwanted iOS input zoom */
+  }
+  .contact-message-field .contact-field-label {
+    margin-bottom: 5px;
+    font-size: 11px;
+  }
+  .contact-message-field textarea {
+    min-height: 76px;
+    padding: 12px 14px;
+  }
+  .contact-message-meta { margin-top: 3px; }
+  .contact-form-status {
+    height: 2.35em;
+    min-height: 2.35em;
+    font-size: 11px;
+  }
+  .contact-review {
+    height: 52px;
+  }
+  .contact-confirm { gap: 9px; }
+  .contact-confirm-scroll { gap: 8px; }
+  .contact-confirm-block { padding: 8px 12px; }
+  .contact-confirm-label {
+    margin-bottom: 3px;
+    font-size: 9px;
+  }
+  .contact-confirm-subject,
+  .contact-confirm-email,
+  .contact-confirm-message {
+    font-size: 13px;
+    line-height: 1.62;
+  }
+  .contact-confirm-message-block { min-height: 76px; }
+}
+
+@media (max-width:760px) and (max-height:680px) {
+  .contact-dialog[open] {
+    padding-top: 28px;
+    padding-bottom: 12px;
+  }
+  .contact-dialog .section-label { margin-bottom: 13px !important; }
+  .contact-dialog h2 { margin-bottom: 10px; }
+  .contact-form { gap: 7px; }
+  .contact-select-trigger,
+  .contact-email-input {
+    min-height: 44px;
+    height: 44px;
+  }
+  .contact-message-field textarea { min-height: 58px; }
+  .contact-form-status {
+    height: 2.15em;
+    min-height: 2.15em;
+  }
+  .contact-review { height: 48px; }
+  .contact-confirm { gap: 7px; }
+  .contact-confirm-scroll { gap: 6px; }
+  .contact-confirm-block { padding: 7px 10px; }
+  .contact-confirm-message-block { min-height: 58px; }
+  .contact-confirm-actions .dialog-ok { height: 50px; }
+}
+
+@media (max-height:700px) and (min-width:761px) {
+  .contact-dialog { padding-top: 34px; padding-bottom: 22px; }
+  .contact-dialog .section-label { margin-bottom: 16px; }
+  .contact-dialog h2 { margin-bottom: 12px; }
+  .contact-form { gap: 9px; }
+  .contact-select-trigger,
+  .contact-email-input { min-height: 46px; height: 46px; }
+  .contact-message-field textarea { min-height: 82px; }
+  .contact-confirm-scroll { gap: 8px; }
+  .contact-confirm-block { padding: 8px 12px; }
+  .contact-confirm-message-block { min-height: 82px; }
+}
+
 </style>
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
 </head>
@@ -1161,6 +1322,9 @@
           </div>
           <input id="contact-subject" name="subject" type="hidden" value="" />
         </div>
+        <div class="contact-field contact-email-field">
+          <input class="contact-email-input" id="contact-email" name="email" type="email" maxlength="254" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="お客様のメールアドレス" aria-label="お客様のメールアドレス" />
+        </div>
         <div class="contact-field contact-message-field">
           <label class="contact-field-label" for="contact-message">メッセージ</label>
           <textarea id="contact-message" name="message" maxlength="2048" rows="8" placeholder="お問い合わせ内容をご入力ください"></textarea>
@@ -1175,6 +1339,10 @@
           <div class="contact-confirm-block contact-confirm-subject-block">
             <p class="contact-confirm-label">お問い合わせ内容</p>
             <p class="contact-confirm-subject" data-confirm-subject></p>
+          </div>
+          <div class="contact-confirm-block contact-confirm-email-block">
+            <p class="contact-confirm-label">お客様のメールアドレス</p>
+            <p class="contact-confirm-email" data-confirm-email></p>
           </div>
           <div class="contact-confirm-block contact-confirm-message-block">
             <p class="contact-confirm-label">メッセージ</p>
@@ -1445,12 +1613,14 @@
   const subjectInput = document.getElementById('contact-subject');
   const subjectValue = document.querySelector('[data-subject-value]');
   const subjectOptions = [...document.querySelectorAll('[data-subject-option]')];
+  const emailInput = document.getElementById('contact-email');
   const messageInput = document.getElementById('contact-message');
   const messageCount = document.querySelector('[data-contact-count]');
   const contactStatus = document.querySelector('[data-contact-status]');
   const editStep = document.querySelector('[data-contact-step="edit"]');
   const confirmStep = document.querySelector('[data-contact-step="confirm"]');
   const confirmSubject = document.querySelector('[data-confirm-subject]');
+  const confirmEmail = document.querySelector('[data-confirm-email]');
   const confirmMessage = document.querySelector('[data-confirm-message]');
   const confirmStatus = document.querySelector('[data-confirm-status]');
   const contactReview = document.querySelector('.contact-review');
@@ -1607,6 +1777,7 @@
 
   const populateConfirmation = (payload) => {
     if (confirmSubject) confirmSubject.textContent = payload.subject;
+    if (confirmEmail) confirmEmail.textContent = payload.email;
     if (confirmMessage) confirmMessage.textContent = payload.message;
     if (confirmStatus) confirmStatus.textContent = 'この内容で送信します、よろしいですか。';
     confirmStep?.classList.remove('is-result');
@@ -1640,6 +1811,21 @@
   document.addEventListener('pointerdown', (event) => {
     if (!subjectField?.classList.contains('is-open')) return;
     if (!subjectField.contains(event.target)) setSubjectMenu(false);
+  });
+
+  const CONTACT_EMAIL_MAX = 254;
+  const CONTACT_EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
+  const normalizeContactEmail = (value) => String(value || '').trim();
+  const isContactEmailValid = (value) => {
+    const email = normalizeContactEmail(value);
+    return email.length > 0 && email.length <= CONTACT_EMAIL_MAX && CONTACT_EMAIL_PATTERN.test(email);
+  };
+
+  emailInput?.addEventListener('input', () => {
+    if (contactStatus) contactStatus.textContent = '';
+  });
+  emailInput?.addEventListener('blur', () => {
+    if (emailInput) emailInput.value = normalizeContactEmail(emailInput.value).slice(0, CONTACT_EMAIL_MAX);
   });
 
   const CONTACT_MESSAGE_MAX = 2048;
@@ -1684,6 +1870,7 @@
     if (messageCount) messageCount.textContent = '0';
     if (contactStatus) contactStatus.textContent = '';
     if (confirmSubject) confirmSubject.textContent = '';
+    if (confirmEmail) confirmEmail.textContent = '';
     if (confirmMessage) confirmMessage.textContent = '';
     if (confirmStatus) confirmStatus.textContent = 'この内容で送信します、よろしいですか。';
     confirmStep?.classList.remove('is-result');
@@ -1755,6 +1942,7 @@
 
   const buildContactPayload = () => ({
     subject: subjectInput?.value.trim() || '',
+    email: normalizeContactEmail(emailInput?.value).slice(0, CONTACT_EMAIL_MAX),
     message: messageInput?.value.slice(0, CONTACT_MESSAGE_MAX) || '',
     page: window.location.href,
     sentAt: new Date().toISOString()
@@ -1796,6 +1984,16 @@
       if (contactStatus) contactStatus.textContent = 'お問い合わせ内容を選択してください。';
       setSubjectMenu(true);
       subjectTrigger?.focus({ preventScroll: true });
+      return;
+    }
+    if (!payload.email) {
+      if (contactStatus) contactStatus.textContent = 'メールアドレスをご入力ください。';
+      emailInput?.focus({ preventScroll: true });
+      return;
+    }
+    if (!isContactEmailValid(payload.email)) {
+      if (contactStatus) contactStatus.textContent = 'メールアドレスを再度お確かめください。';
+      emailInput?.focus({ preventScroll: true });
       return;
     }
     if (!payload.message.trim()) {
