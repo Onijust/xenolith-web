@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Xenolith Website v5.16 — v5.15 text update + unified footer typography -->
+<!-- Xenolith Website v5.17 — contact form preview + backend-ready delivery hook -->
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
@@ -496,6 +496,253 @@
   }
 }
 
+
+
+/* ============================================================
+   Xenolith v5.17 — CONTACT form preview / backend-ready shell
+   ============================================================ */
+.contact-dialog {
+  width: min(90vw, 760px);
+  max-width: 760px;
+  max-height: min(88vh, 820px);
+  padding: 48px 46px 34px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.contact-dialog .section-label { margin-bottom: 26px; }
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.contact-field { position: relative; }
+.contact-select-trigger,
+.contact-message-field textarea {
+  width: 100%;
+  border: 1px solid rgba(28,32,35,.28);
+  border-radius: 0;
+  background: rgba(255,255,255,.72);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-weight: 400;
+  outline: none;
+  transition: border-color .28s ease, background .28s ease, box-shadow .28s ease;
+}
+.contact-select-trigger {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 58px;
+  padding: 0 20px;
+  cursor: pointer;
+  text-align: left;
+  font-size: 15px;
+  letter-spacing: .06em;
+}
+.contact-select-trigger:hover,
+.contact-select-trigger:focus-visible,
+.contact-message-field textarea:focus {
+  border-color: rgba(28,32,35,.70);
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(8,16,24,.07);
+}
+.contact-select-mark {
+  position: relative;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  margin-left: 18px;
+}
+.contact-select-mark::before,
+.contact-select-mark::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  width: 9px;
+  height: 1px;
+  background: currentColor;
+  transition: transform .32s var(--ease-out);
+}
+.contact-select-mark::before { left: 1px; transform: rotate(38deg); }
+.contact-select-mark::after { right: 1px; transform: rotate(-38deg); }
+.contact-subject-field.is-open .contact-select-mark::before { transform: rotate(-38deg); }
+.contact-subject-field.is-open .contact-select-mark::after { transform: rotate(38deg); }
+.contact-select-menu {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  background: rgba(246,244,240,.98);
+  border: 1px solid transparent;
+  border-top: 0;
+  transition:
+    grid-template-rows .46s var(--ease-out),
+    opacity .22s ease,
+    border-color .28s ease,
+    visibility 0s linear .46s;
+}
+.contact-select-menu::before {
+  content: "";
+  min-height: 0;
+  overflow: hidden;
+  grid-row: 1;
+}
+/* The options are absolutely layered into the animated grid row through this wrapper-less layout. */
+.contact-select-menu > button {
+  grid-row: 1;
+  min-width: 0;
+}
+.contact-subject-field.is-open .contact-select-menu {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  border-color: rgba(28,32,35,.20);
+  transition:
+    grid-template-rows .46s var(--ease-out),
+    opacity .22s ease,
+    border-color .28s ease,
+    visibility 0s linear 0s;
+}
+/* Use max-height as the actual shutter while retaining smooth closing in all engines. */
+.contact-select-menu {
+  display: block;
+  max-height: 0;
+  overflow: hidden;
+  transform-origin: top center;
+  transition:
+    max-height .46s var(--ease-out),
+    opacity .22s ease,
+    border-color .28s ease,
+    visibility 0s linear .46s;
+}
+.contact-subject-field.is-open .contact-select-menu {
+  max-height: 430px;
+  transition:
+    max-height .46s var(--ease-out),
+    opacity .22s ease,
+    border-color .28s ease,
+    visibility 0s linear 0s;
+}
+.contact-select-menu button {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 20px;
+  border: 0;
+  border-top: 1px solid rgba(28,32,35,.08);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: var(--serif);
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: .045em;
+  text-align: left;
+  transition: background .22s ease, padding-left .26s var(--ease-out), color .22s ease;
+}
+.contact-select-menu button:first-child { border-top: 0; }
+.contact-select-menu button:hover,
+.contact-select-menu button:focus-visible {
+  background: rgba(239,28,37,.055);
+  color: #111;
+  padding-left: 25px;
+  outline: none;
+}
+.contact-field-label {
+  display: block;
+  margin: 0 0 10px;
+  font-family: var(--serif);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: .12em;
+}
+.contact-message-field textarea {
+  display: block;
+  min-height: 196px;
+  max-height: 300px;
+  padding: 16px 18px;
+  resize: vertical;
+  font-size: 15px;
+  line-height: 1.85;
+  letter-spacing: .035em;
+}
+.contact-message-field textarea::placeholder { color: rgba(28,32,35,.45); }
+.contact-message-meta {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 7px;
+  color: rgba(28,32,35,.48);
+  font-family: var(--serif);
+  font-size: 10px;
+  letter-spacing: .08em;
+}
+.contact-form-status {
+  min-height: 1.3em;
+  margin: -8px 0 -8px;
+  color: var(--accent);
+  font-family: var(--serif);
+  font-size: 12px;
+  letter-spacing: .04em;
+  line-height: 1.55;
+}
+.contact-submit { margin-top: 4px; }
+/* SEND fills from left to right, matching the main CONTACT button. */
+.contact-submit::before {
+  transform: translateX(-102%);
+  transform-origin: left center;
+}
+.contact-submit.is-activating::before { transform: translateX(0); }
+.contact-submit.is-sending { pointer-events: none; }
+
+@media (max-width:760px) {
+  .contact-dialog {
+    width: calc(100vw - 28px);
+    max-width: none;
+    max-height: calc(100dvh - 28px);
+    padding: 42px 22px 24px;
+  }
+  .contact-dialog .section-label { margin-bottom: 26px; }
+  .contact-form { gap: 18px; }
+  .contact-select-trigger {
+    min-height: 54px;
+    padding: 0 16px;
+    font-size: 14px;
+  }
+  .contact-select-menu button {
+    min-height: 46px;
+    padding: 11px 16px;
+    font-size: 13px;
+  }
+  .contact-message-field textarea {
+    min-height: clamp(210px, 31dvh, 300px);
+    max-height: 42dvh;
+    padding: 15px 16px;
+    font-size: 16px; /* prevents unwanted iOS input zoom */
+    line-height: 1.75;
+  }
+  .contact-field-label { font-size: 12px; }
+  .contact-submit { margin-top: 2px; }
+}
+
+@media (max-height:700px) and (min-width:761px) {
+  .contact-dialog { max-height: calc(100vh - 28px); padding-top: 38px; padding-bottom: 26px; }
+  .contact-message-field textarea { min-height: 150px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contact-select-menu,
+  .contact-select-mark::before,
+  .contact-select-mark::after,
+  .contact-submit::before { transition-duration: .01ms !important; }
+}
+
 </style>
 </head>
 <body>
@@ -584,8 +831,31 @@
     <button class="dialog-close" type="button" aria-label="閉じる">×</button>
     <p class="section-label">CONTACT</p>
     <h2>お問い合わせ</h2>
-    <p>正式なメールアドレスまたはお問い合わせフォームは、公開前にここへ設定します。</p>
-    <button class="dialog-ok" type="button">CLOSE</button>
+    <form class="contact-form" id="contact-form" novalidate>
+      <div class="contact-field contact-subject-field">
+        <button class="contact-select-trigger" id="contact-subject-trigger" type="button" aria-expanded="false" aria-controls="contact-subject-menu">
+          <span class="contact-select-value" data-subject-value>お問い合わせ内容</span>
+          <span class="contact-select-mark" aria-hidden="true"></span>
+        </button>
+        <div class="contact-select-menu" id="contact-subject-menu" role="listbox" aria-label="お問い合わせ内容">
+          <button type="button" role="option" data-subject-option="事業に関するご相談">事業に関するご相談</button>
+          <button type="button" role="option" data-subject-option="ゲーム開発のご相談">ゲーム開発のご相談</button>
+          <button type="button" role="option" data-subject-option="アプリ開発のご相談">アプリ開発のご相談</button>
+          <button type="button" role="option" data-subject-option="ディレクションのご相談">ディレクションのご相談</button>
+          <button type="button" role="option" data-subject-option="企画立案のご相談">企画立案のご相談</button>
+          <button type="button" role="option" data-subject-option="プロトタイプ開発に関するご相談">プロトタイプ開発に関するご相談</button>
+          <button type="button" role="option" data-subject-option="その他">その他</button>
+        </div>
+        <input id="contact-subject" name="subject" type="hidden" value="" />
+      </div>
+      <div class="contact-field contact-message-field">
+        <label class="contact-field-label" for="contact-message">メッセージ</label>
+        <textarea id="contact-message" name="message" maxlength="2048" rows="8" placeholder="お問い合わせ内容をご入力ください"></textarea>
+        <div class="contact-message-meta"><span data-contact-count>0</span><span> / 2048</span></div>
+      </div>
+      <p class="contact-form-status" data-contact-status aria-live="polite"></p>
+      <button class="dialog-ok contact-submit" type="submit">送信</button>
+    </form>
   </dialog>
   <script>
 
@@ -828,10 +1098,31 @@
   onScroll();
 
   // CONTACT button -> red fill -> modal grows from the button.
+  // v5.17 keeps the delivery hook backend-ready while actual delivery stays disabled.
+  const CONTACT_CONFIG = Object.freeze({
+    endpoint: '/api/contact',
+    deliveryEnabled: false,
+    recipientPlaceholder: 'xxx@xxx.jp'
+  });
+  const contactForm = document.getElementById('contact-form');
+  const subjectField = document.querySelector('.contact-subject-field');
+  const subjectTrigger = document.getElementById('contact-subject-trigger');
+  const subjectMenu = document.getElementById('contact-subject-menu');
+  const subjectInput = document.getElementById('contact-subject');
+  const subjectValue = document.querySelector('[data-subject-value]');
+  const subjectOptions = [...document.querySelectorAll('[data-subject-option]')];
+  const messageInput = document.getElementById('contact-message');
+  const messageCount = document.querySelector('[data-contact-count]');
+  const contactStatus = document.querySelector('[data-contact-status]');
+  const dialogSubmit = document.querySelector('.contact-submit');
+
+  const wait = (ms) => new Promise(resolve => window.setTimeout(resolve, ms));
+
   const setDialogOriginFromButton = () => {
     if (!dialog || !contactButton) return;
     const b = contactButton.getBoundingClientRect();
-    // dialog is centered by the browser; estimate its final box after showModal.
+    // The dialog's live final dimensions are measured after showModal(), so the
+    // existing button-to-dialog zoom automatically adapts to the larger form.
     const d = dialog.getBoundingClientRect();
     const dx = (b.left + b.width / 2) - (d.left + d.width / 2);
     const dy = (b.top + b.height / 2) - (d.top + d.height / 2);
@@ -843,6 +1134,47 @@
     dialog.style.setProperty('--dialog-from-scale-y', sy.toFixed(3));
   };
 
+  const setSubjectMenu = (open) => {
+    if (!subjectField || !subjectTrigger) return;
+    subjectField.classList.toggle('is-open', open);
+    subjectTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+  };
+
+  subjectTrigger?.addEventListener('click', () => {
+    setSubjectMenu(!subjectField?.classList.contains('is-open'));
+  });
+
+  subjectOptions.forEach((option) => {
+    option.addEventListener('click', () => {
+      const value = option.dataset.subjectOption || option.textContent.trim();
+      if (subjectInput) subjectInput.value = value;
+      if (subjectValue) subjectValue.textContent = value;
+      subjectOptions.forEach(item => item.setAttribute('aria-selected', item === option ? 'true' : 'false'));
+      if (contactStatus) contactStatus.textContent = '';
+      setSubjectMenu(false);
+    });
+  });
+
+  document.addEventListener('pointerdown', (event) => {
+    if (!subjectField?.classList.contains('is-open')) return;
+    if (!subjectField.contains(event.target)) setSubjectMenu(false);
+  });
+
+  messageInput?.addEventListener('input', () => {
+    if (messageCount) messageCount.textContent = String(messageInput.value.length);
+    if (contactStatus) contactStatus.textContent = '';
+  });
+
+  const resetContactForm = () => {
+    contactForm?.reset();
+    if (subjectInput) subjectInput.value = '';
+    if (subjectValue) subjectValue.textContent = 'お問い合わせ内容';
+    subjectOptions.forEach(item => item.setAttribute('aria-selected', 'false'));
+    if (messageCount) messageCount.textContent = '0';
+    if (contactStatus) contactStatus.textContent = '';
+    setSubjectMenu(false);
+  };
+
   const openDialog = () => {
     if (!dialog || !contactButton || dialog.open) return;
     contactButton.classList.add('is-activating');
@@ -850,48 +1182,103 @@
     window.setTimeout(() => {
       dialog.showModal();
       dialog.classList.remove('is-closing');
-      setDialogOriginFromButton();
-      contactButton.classList.remove('is-activating');
-      contactButton.classList.add('is-modal-open');
-      requestAnimationFrame(() => requestAnimationFrame(() => dialog.classList.add('is-open')));
+      // Measure on the next frame to make sure the final, larger dialog box is laid out.
+      requestAnimationFrame(() => {
+        setDialogOriginFromButton();
+        contactButton.classList.remove('is-activating');
+        contactButton.classList.add('is-modal-open');
+        requestAnimationFrame(() => dialog.classList.add('is-open'));
+      });
     }, fillDelay);
   };
 
   let closingDialog = false;
-  const dialogOk = document.querySelector('.dialog-ok');
-  const closeDialog = ({ animateCloseButton = false } = {}) => {
+  const closeDialog = ({ afterClose = null } = {}) => {
     if (!dialog?.open || closingDialog) return;
     closingDialog = true;
+    setSubjectMenu(false);
+    setDialogOriginFromButton();
+    dialog.classList.remove('is-open');
+    dialog.classList.add('is-closing');
 
-    const beginShrink = () => {
-      setDialogOriginFromButton();
-      dialog.classList.remove('is-open');
-      dialog.classList.add('is-closing');
-      const finish = () => {
-        dialog.classList.remove('is-closing');
-        dialog.close();
-        dialogOk?.classList.remove('is-activating');
-        contactButton?.classList.remove('is-modal-open', 'is-activating');
-        closingDialog = false;
-      };
-      if (prefersReduced) finish();
-      else window.setTimeout(finish, 540);
+    const finish = () => {
+      dialog.classList.remove('is-closing');
+      dialog.close();
+      dialogSubmit?.classList.remove('is-activating', 'is-sending');
+      contactButton?.classList.remove('is-modal-open', 'is-activating');
+      closingDialog = false;
+      if (typeof afterClose === 'function') afterClose();
     };
-
-    if (animateCloseButton && dialogOk) {
-      dialogOk.classList.add('is-activating');
-      if (prefersReduced) beginShrink();
-      else window.setTimeout(beginShrink, 420);
-    } else {
-      beginShrink();
-    }
+    if (prefersReduced) finish();
+    else window.setTimeout(finish, 540);
   };
+
+  const buildContactPayload = () => ({
+    subject: subjectInput?.value.trim() || '',
+    message: messageInput?.value.slice(0, 2048) || '',
+    page: window.location.href,
+    sentAt: new Date().toISOString()
+  });
+
+  const deliverContact = async (payload) => {
+    if (!CONTACT_CONFIG.deliveryEnabled) {
+      // Preview mode: keep the final recipient out of the UI. The real address
+      // will later live only in Cloudflare's server-side environment/secret.
+      console.info('[Xenolith CONTACT preview]', {
+        ...payload,
+        recipientPlaceholder: CONTACT_CONFIG.recipientPlaceholder
+      });
+      return { ok: true, preview: true };
+    }
+
+    const response = await fetch(CONTACT_CONFIG.endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!response.ok) throw new Error(`Contact delivery failed: ${response.status}`);
+    return response.json().catch(() => ({ ok: true }));
+  };
+
+  contactForm?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!dialogSubmit || dialogSubmit.classList.contains('is-sending')) return;
+
+    const payload = buildContactPayload();
+    if (!payload.subject) {
+      if (contactStatus) contactStatus.textContent = 'お問い合わせ内容を選択してください。';
+      setSubjectMenu(true);
+      subjectTrigger?.focus({ preventScroll: true });
+      return;
+    }
+    if (!payload.message.trim()) {
+      if (contactStatus) contactStatus.textContent = 'メッセージをご入力ください。';
+      messageInput?.focus({ preventScroll: true });
+      return;
+    }
+
+    dialogSubmit.classList.add('is-activating', 'is-sending');
+    if (contactStatus) contactStatus.textContent = '';
+    const fill = prefersReduced ? Promise.resolve() : wait(420);
+
+    try {
+      const [, result] = await Promise.all([fill, deliverContact(payload)]);
+      closeDialog({ afterClose: resetContactForm });
+    } catch (error) {
+      console.error(error);
+      dialogSubmit.classList.remove('is-activating', 'is-sending');
+      if (contactStatus) contactStatus.textContent = '送信できませんでした。時間をおいて再度お試しください。';
+    }
+  });
 
   contactButton?.addEventListener('click', openDialog);
   document.querySelector('.dialog-close')?.addEventListener('click', () => closeDialog());
-  dialogOk?.addEventListener('click', () => closeDialog({ animateCloseButton: true }));
   dialog?.addEventListener('cancel', (event) => {
     event.preventDefault();
+    if (subjectField?.classList.contains('is-open')) {
+      setSubjectMenu(false);
+      return;
+    }
     closeDialog();
   });
   dialog?.addEventListener('click', (event) => {
@@ -900,6 +1287,9 @@
                     event.clientY < rect.top || event.clientY > rect.bottom;
     if (outside) closeDialog();
   });
+  window.addEventListener('resize', () => {
+    if (dialog?.open) setDialogOriginFromButton();
+  }, { passive: true });
 
   if (!coarsePointer) {
     document.querySelectorAll('.magnetic-button').forEach((button) => {
