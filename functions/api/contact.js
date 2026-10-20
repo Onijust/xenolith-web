@@ -12,6 +12,9 @@ const ALLOWED_SUBJECTS = new Set([
 ]);
 
 const MAIL_FROM = 'Xenolith Website <noreply@contact.xenolith.jp>';
+const EMAIL_MAX_LENGTH = 254;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
+const validEmail = (value) => value.length > 0 && value.length <= EMAIL_MAX_LENGTH && EMAIL_PATTERN.test(value);
 
 const json = (body, status = 200) => new Response(JSON.stringify(body), {
   status,
@@ -38,11 +41,15 @@ export async function onRequestPost(context) {
   }
 
   const subject = typeof body.subject === 'string' ? body.subject.trim() : '';
+  const email = typeof body.email === 'string' ? body.email.trim() : '';
   const message = typeof body.message === 'string' ? body.message : '';
   const token = typeof body.turnstileToken === 'string' ? body.turnstileToken : '';
 
   if (!ALLOWED_SUBJECTS.has(subject)) {
     return json({ ok: false, error: 'invalid_subject' }, 400);
+  }
+  if (!validEmail(email)) {
+    return json({ ok: false, error: 'invalid_email' }, 400);
   }
   if (!message.trim() || message.length > 2048) {
     return json({ ok: false, error: 'invalid_message' }, 400);
@@ -88,6 +95,7 @@ export async function onRequestPost(context) {
     'Xenolith公式サイトからお問い合わせがありました。',
     '',
     `お問い合わせ内容: ${subject}`,
+    `お客様のメールアドレス: ${email}`,
     '',
     'メッセージ:',
     message,
@@ -110,6 +118,7 @@ export async function onRequestPost(context) {
       body: JSON.stringify({
         from: MAIL_FROM,
         to: [env.CONTACT_TO.trim()],
+        reply_to: email,
         subject: `[Xenolith Website] ${subject}`,
         text: mailText
       })
