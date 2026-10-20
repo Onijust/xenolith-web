@@ -1,4 +1,5 @@
 const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+const RESEND_EMAIL_URL = 'https://api.resend.com/emails';
 const ALLOWED_HOSTNAMES = new Set(['xenolith.jp', 'www.xenolith.jp']);
 const ALLOWED_SUBJECTS = new Set([
   '事業に関するご相談',
@@ -10,6 +11,8 @@ const ALLOWED_SUBJECTS = new Set([
   'その他'
 ]);
 
+const MAIL_FROM = 'Xenolith Website <noreply@contact.xenolith.jp>';
+
 const json = (body, status = 200) => new Response(JSON.stringify(body), {
   status,
   headers: {
@@ -18,10 +21,12 @@ const json = (body, status = 200) => new Response(JSON.stringify(body), {
   }
 });
 
+const configured = (value) => typeof value === 'string' && value.trim().length > 0;
+
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  if (!env.TURNSTILE_SECRET) {
+  if (!configured(env.TURNSTILE_SECRET) || !configured(env.RESEND_API_KEY) || !configured(env.CONTACT_TO)) {
     return json({ ok: false, error: 'server_not_configured' }, 500);
   }
 
@@ -78,21 +83,63 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'turnstile_hostname_mismatch' }, 403);
   }
 
-  // v5.23 intentionally stops after server-side Turnstile verification.
-  // The real recipient address and mail provider will be added only on the
-  // server side in the next stage, so no email address is exposed to the page.
-  // Do not log the visitor's message body.
-  console.log('Xenolith contact verified', {
+  const sentAt = new Date().toISOString();
+  const mailText = [
+    'Xenolith公式サイトからお問い合わせがありました。',
+    '',
+    `お問い合わせ内容: ${subject}`,
+    '',
+    'メッセージ:',
+    message,
+    '',
+    `受付日時: ${sentAt}`
+  ].join('\n');
+
+  let resendResponse;
+  let resendBody = {};
+  const deliveryId = crypto.randomUUID();
+
+  try {
+    resendResponse = await fetch(RESEND_EMAIL_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+        'Idempotency-Key': `xenolith-contact/${deliveryId}`
+      },
+      body: JSON.stringify({
+        from: MAIL_FROM,
+        to: [env.CONTACT_TO.trim()],
+        subject: `[Xenolith Website] ${subject}`,
+        text: mailText
+      })
+    });
+    resendBody = await resendResponse.json().catch(() => ({}));
+  } catch {
+    return json({ ok: false, error: 'email_provider_unavailable' }, 502);
+  }
+
+  if (!resendResponse.ok || !resendBody?.id) {
+    // Do not return provider details to the browser. The status/name are enough
+    // for Cloudflare logs while keeping the recipient and message private.
+    console.error('Xenolith contact delivery failed', {
+      providerStatus: resendResponse.status,
+      providerError: typeof resendBody?.name === 'string' ? resendBody.name : 'unknown',
+      subject,
+      verifiedHostname: verify.hostname
+    });
+    return json({ ok: false, error: 'email_delivery_failed' }, 502);
+  }
+
+  // Never log the visitor's message or the private recipient address.
+  console.log('Xenolith contact delivered', {
     subject,
     hostname: verify.hostname,
-    verifiedAt: new Date().toISOString()
+    resendId: resendBody.id,
+    deliveredAt: sentAt
   });
 
-  return json({
-    ok: true,
-    preview: true,
-    verified: true
-  });
+  return json({ ok: true, delivered: true });
 }
 
 export function onRequest() {
