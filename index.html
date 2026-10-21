@@ -1360,6 +1360,26 @@
   }
 }
 
+
+/* ============================================================
+   Xenolith v5.39 — unify desktop hover motion for action buttons
+   ============================================================ */
+@media (hover:hover) and (pointer:fine) {
+  .contact-button:not(.is-activating):not(.is-modal-open):hover,
+  .contact-button:not(.is-activating):not(.is-modal-open):focus-visible {
+    border-color: #fff;
+    transform: translateY(-3px);
+    box-shadow: 0 14px 36px rgba(0,0,0,.26);
+    letter-spacing: .33em;
+    outline: none;
+  }
+
+  .contact-button:not(.is-activating):not(.is-modal-open):hover .button-arrow,
+  .contact-button:not(.is-activating):not(.is-modal-open):focus-visible .button-arrow {
+    transform: translateX(7px);
+  }
+}
+
 </style>
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
 </head>
