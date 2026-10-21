@@ -1215,6 +1215,151 @@
   .contact-confirm-message-block { min-height: 82px; }
 }
 
+
+/* ============================================================
+   Xenolith v5.38 — PROJECTS SEE MORE + red triangle actions
+   ============================================================ */
+
+/* CONTACT / SEE MORE のアクセント記号を共通の赤い三角にする。 */
+.button-arrow {
+  color: var(--accent);
+  font-size: 1em;
+  line-height: 1;
+  letter-spacing: 0;
+  flex: 0 0 auto;
+  transition:
+    color .22s ease,
+    transform .35s var(--ease-out);
+}
+
+/* CONTACTが赤く満たされた状態では三角を白にして視認性を保つ。 */
+.contact-button.is-activating .button-arrow,
+.contact-button.is-modal-open .button-arrow {
+  color: #fff;
+}
+
+/* PROJECTS の写真右下に常時配置。sectionの右下 = 通常レイアウトでは写真右下。 */
+#projects {
+  position: relative;
+}
+
+.project-see-more {
+  appearance: none;
+  position: absolute;
+  right: clamp(18px, 2.4vw, 34px);
+  bottom: clamp(18px, 2.4vw, 34px);
+  z-index: 6;
+
+  /* CONTACT外枠の約80% */
+  min-width: clamp(176px, 17.6vw, 240px);
+  height: 61px;
+  padding: 0 22px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+
+  border: 1px solid rgba(255,255,255,.72);
+  background: rgba(12,22,30,.16);
+  color: #fff;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+
+  font-family: var(--serif);
+  font-size: clamp(15px, 1.2vw, 18px);
+  font-weight: 400;
+  letter-spacing: .30em;
+  white-space: nowrap;
+
+  overflow: hidden;
+  isolation: isolate;
+  cursor: pointer;
+
+  transition:
+    border-color .32s ease,
+    color .32s ease,
+    transform .42s var(--ease-out),
+    box-shadow .42s var(--ease-out),
+    letter-spacing .42s var(--ease-out);
+}
+
+.project-see-more::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--accent);
+  transform: translateX(-102%);
+  transform-origin: left center;
+  transition: transform .46s var(--ease-out);
+}
+
+.project-see-more > span {
+  position: relative;
+  z-index: 2;
+}
+
+.project-see-more:hover,
+.project-see-more:focus-visible {
+  border-color: #fff;
+  transform: translateY(-3px);
+  box-shadow: 0 14px 36px rgba(0,0,0,.26);
+  letter-spacing: .33em;
+  outline: none;
+}
+
+.project-see-more:hover .button-arrow,
+.project-see-more:focus-visible .button-arrow {
+  transform: translateX(7px);
+}
+
+/* クリック時、左→右へ全面を赤で満たす。 */
+.project-see-more.is-activating {
+  color: #fff;
+  border-color: var(--accent);
+  pointer-events: none;
+  box-shadow: 0 14px 42px rgba(239,28,37,.24);
+}
+
+.project-see-more.is-activating::before {
+  transform: translateX(0);
+}
+
+.project-see-more.is-activating .button-arrow {
+  color: #fff;
+  transform: translateX(7px);
+}
+
+@media (max-width: 760px) {
+  .project-see-more {
+    right: 18px;
+    bottom: 18px;
+    min-width: 0;
+    width: calc(80% - 26px);
+    max-width: 300px;
+    height: 61px;
+    padding: 0 20px;
+
+    /* CONTACTと文字・三角の大きさを合わせる。 */
+    font-size: clamp(16px, 4.4vw, 19px);
+    letter-spacing: .14em;
+  }
+}
+
+@media (hover:none), (pointer:coarse) {
+  .project-see-more:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-see-more::before {
+    transition-duration: .01ms !important;
+  }
+}
+
 </style>
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
 </head>
@@ -1280,6 +1425,9 @@
       <div class="panel-media media-right motion-media" aria-label="海を見下ろす旅の風景" role="img">
         <div class="media-image projects-image"></div>
       </div>
+      <a class="project-see-more" href="./tabimaru/" data-project-link>
+        <span>SEE MORE</span><span class="button-arrow" aria-hidden="true">▶</span>
+      </a>
     </section>
     <section class="contact motion-section" id="contact" data-motion-section>
       <div class="contact-media" aria-hidden="true"></div>
@@ -1291,7 +1439,7 @@
           <p>新しい企画の立ち上げから、アイデアの具現化、<br class="desktop-only" />開発チームディレクション、プロトタイプ制作まで幅広く対応しています。<br class="desktop-only" />まだ輪郭のない段階からでも、お気軽にご相談ください。</p>
         </div>
         <button class="contact-button magnetic-button" type="button" data-contact>
-          <span>CONTACT</span><span class="button-arrow" aria-hidden="true">→</span>
+          <span>CONTACT</span><span class="button-arrow" aria-hidden="true">▶</span>
         </button>
       </div>
     </section>
@@ -2050,6 +2198,22 @@
     await wait(prefersReduced ? 0 : 2000);
     contactBack?.removeAttribute('disabled');
     closeDialog({ afterClose: resetContactFlow });
+  });
+
+
+  // v5.38: PROJECTS SEE MORE -> red fill from left to right -> navigate.
+  const projectLink = document.querySelector('[data-project-link]');
+  projectLink?.addEventListener('click', (event) => {
+    event.preventDefault();
+    if (projectLink.classList.contains('is-activating')) return;
+
+    projectLink.classList.add('is-activating');
+
+    const destination = projectLink.href;
+    const delay = prefersReduced ? 20 : 480;
+    window.setTimeout(() => {
+      window.location.assign(destination);
+    }, delay);
   });
 
   // v5.31: capture the button rectangle at the actual click activation time,
